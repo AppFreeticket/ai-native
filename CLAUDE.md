@@ -24,7 +24,9 @@ Si falta un endpoint, se pide en `free-admin`, no se inventa en el cliente.
 ## Capas de agentes
 
 - **Aquí (umbrella `.claude/agents/`)**: agentes cross-cutting que cruzan repos
-  (`contract-sync`, `oss-maintainer`). Úsalos parado en la raíz de `ai-native`.
+  (`contract-sync`, `endpoint-requester`, `oss-maintainer`). Úsalos parado en la
+  raíz de `ai-native`. Falta un endpoint → `endpoint-requester` lo pide en
+  free-admin y lo anota en [`CONTRACT-GAPS.md`](CONTRACT-GAPS.md).
 - **Dentro de cada submódulo**: agentes específicos de esa pieza (su propio
   `.claude/agents/`). Al entrar a `cli/` o `mcp/`, esos toman precedencia.
 
