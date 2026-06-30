@@ -14,6 +14,7 @@ Estados: `identified` (detectado, sin issue) · `requested` (issue abierto) ·
 
 | Funcionalidad | Endpoint(s) que faltan | Contrato | Cliente | Issue free-admin | Estado |
 |---|---|---|---|---|---|
+| Login self-service por browser (device flow RFC 8628) — el user se loguea con su sesión y acuña su propio token, sin `pnpm api:key` server-side | `POST /auth/device/code`, `POST /auth/device/token` (+ página `/cli` de aprobación en free-admin) | B2B | cli ✓, mcp | [#160](https://github.com/AppFreeticket/free-admin/issues/160) | shipped |
 | Check-in / control de acceso en puerta | `POST /tickets/{id}/checkin`, `GET /tickets/{id}/access` | B2B | cli, mcp | — | identified |
 | Tickets/asistentes individuales + reenvío | `GET /sales/{id}/tickets`, `POST /tickets/{id}/resend` (reemitir QR/email) | B2B | cli | — | identified |
 | Crear venta/orden por API (comp / venta programática) | `POST /sales` | B2B | cli | — | identified |
