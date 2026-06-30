@@ -1,0 +1,6 @@
+[submodule "cli"]
+	path = cli
+	url = https://github.com/AppFreeticket/freeticket-cli.git
+[submodule "skills"]
+	path = skills
+	url = https://github.com/AppFreeticket/agent-skills.git
