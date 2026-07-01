@@ -22,5 +22,8 @@ Estados: `identified` (detectado, sin issue) · `requested` (issue abierto) ·
 | Cupones / descuentos | `GET/POST/PATCH/DELETE /discounts` | B2B | cli | — | identified |
 | Webhooks (registrar endpoints de eventos: venta, refund) | `GET/POST/DELETE /webhooks` | B2B | cli, mcp | — | identified |
 | Reportes por evento / serie temporal | `GET /reports/by-event`, `GET /reports/timeseries` | B2B | cli | — | identified |
+| Reporte de inventario disponible por evento/fecha/ticket | `GET /reports/inventory` (agrega capacity/sold/reserved/available por evento·fecha·tipo) | B2B | cli | [#165](https://github.com/AppFreeticket/free-admin/issues/165) | requested |
+| Filtros útiles en el listado de ventas | `GET /sales` query params `event`, `eventDate`, `reference`, `buyer`, `from`, `to`, `channel` (hoy sólo `status`, `limit`, `cursor`) | B2B | cli | [#167](https://github.com/AppFreeticket/free-admin/issues/167) | requested |
+| Exports de compradores/asistentes con filtros y detalle de ticket | `GET /reports/exports/buyers` filtros (`event`, `eventDate`, `from`, `to`, `status`) + campos ticket/evento, o nuevo `GET /reports/exports/attendees` | B2B | cli | [#168](https://github.com/AppFreeticket/free-admin/issues/168) | requested |
 
 <!-- endpoint-requester: agregá filas nuevas arriba de esta línea, ordenadas por prioridad. -->
