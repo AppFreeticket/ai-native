@@ -4,3 +4,9 @@ dist/
 *.log
 .env
 .env.local
+
+# Secrets — never commit service-account keys or credentials
+*-service-account-key.json
+*-service-account*.json
+firebase-service-account-key.json
+.claude/worktrees/
