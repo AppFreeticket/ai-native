@@ -15,13 +15,13 @@ Estados: `identified` (detectado, sin issue) · `requested` (issue abierto) ·
 | Funcionalidad | Endpoint(s) que faltan | Contrato | Cliente | Issue free-admin | Estado |
 |---|---|---|---|---|---|
 | Login self-service por browser (device flow RFC 8628) — el user se loguea con su sesión y acuña su propio token, sin `pnpm api:key` server-side | `POST /auth/device/code`, `POST /auth/device/token` (+ página `/cli` de aprobación en free-admin) | B2B | cli ✓, mcp | [#160](https://github.com/AppFreeticket/free-admin/issues/160) | shipped |
-| Check-in / control de acceso en puerta | `POST /tickets/{id}/checkin`, `GET /tickets/{id}/access` | B2B | cli, mcp | [#172](https://github.com/AppFreeticket/free-admin/issues/172) | requested |
-| Tickets/asistentes individuales + reenvío | `GET /sales/{id}/tickets`, `POST /tickets/{id}/resend` (reemitir QR/email) | B2B | cli | [#173](https://github.com/AppFreeticket/free-admin/issues/173) | requested |
-| Crear venta/orden por API (comp / venta programática) | `POST /sales` | B2B | cli | [#174](https://github.com/AppFreeticket/free-admin/issues/174) | requested |
-| Suscripciones / miembros de un plan | `GET /membership-plans/{id}/subscribers`, `POST /subscriptions/{id}/cancel` | B2B | cli | [#175](https://github.com/AppFreeticket/free-admin/issues/175) | requested |
-| Cupones / descuentos | `GET/POST/PATCH/DELETE /discounts` | B2B | cli | [#176](https://github.com/AppFreeticket/free-admin/issues/176) | requested |
-| Webhooks (registrar endpoints de eventos: venta, refund) | `GET/POST/DELETE /webhooks` | B2B | cli, mcp | [#177](https://github.com/AppFreeticket/free-admin/issues/177) | requested |
-| Reportes por evento / serie temporal | `GET /reports/by-event`, `GET /reports/timeseries` | B2B | cli | [#178](https://github.com/AppFreeticket/free-admin/issues/178) | requested |
+| Check-in / control de acceso en puerta | `POST /tickets/{code}/checkin`, `GET /tickets/{code}/access` | B2B | cli ✓, mcp | [#172](https://github.com/AppFreeticket/free-admin/issues/172) | shipped |
+| Tickets/asistentes individuales + reenvío | `GET /sales/{id}/tickets`, `POST /tickets/{code}/resend` (reemitir QR/email) | B2B | cli ✓ | [#173](https://github.com/AppFreeticket/free-admin/issues/173) | shipped |
+| Crear venta/orden por API (comp / venta programática) | `POST /sales` | B2B | cli ✓ | [#174](https://github.com/AppFreeticket/free-admin/issues/174) | shipped |
+| Suscripciones / miembros de un plan | `GET /membership-plans/{id}/subscribers`, `POST /subscriptions/{id}/cancel` | B2B | cli ✓ | [#175](https://github.com/AppFreeticket/free-admin/issues/175) | shipped |
+| Cupones / descuentos | `GET/POST/PATCH/DELETE /discounts` | B2B | cli ✓ | [#176](https://github.com/AppFreeticket/free-admin/issues/176) | shipped |
+| Webhooks (registrar endpoints de eventos: venta, refund) | `GET/POST/DELETE /webhooks` | B2B | cli ✓, mcp | [#177](https://github.com/AppFreeticket/free-admin/issues/177) | shipped |
+| Reportes por evento / serie temporal | `GET /reports/by-event`, `GET /reports/timeseries` | B2B | cli ✓ | [#178](https://github.com/AppFreeticket/free-admin/issues/178) | shipped |
 | Reporte de inventario disponible por evento/fecha/ticket | `GET /reports/inventory` (capacity/sold/reserved/available por evento·fecha·tipo; params `eventId`, `eventDateId`, `from`, `to`, `includeDrafts`, `groupBy=ticketType\|date\|event`) | B2B | cli ✓ | [#165](https://github.com/AppFreeticket/free-admin/issues/165) | shipped |
 | Filtros útiles en el listado de ventas | `GET /sales` query params `event`, `eventDate`, `reference`, `buyer`, `from`, `to`, `channel` (además de `status`, `limit`, `cursor`) | B2B | cli ✓ | [#167](https://github.com/AppFreeticket/free-admin/issues/167) | shipped |
 | Exports de compradores/asistentes con filtros y detalle de ticket | `GET /reports/exports/buyers` (una fila por venta) + `GET /reports/exports/attendees` (una fila por ticket), ambos con filtros `event`, `eventDate`, `from`, `to`, `status` y detalle de evento/fecha/tipo | B2B | cli ✓ | [#168](https://github.com/AppFreeticket/free-admin/issues/168) | shipped |
