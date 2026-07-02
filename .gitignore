@@ -10,3 +10,4 @@ dist/
 *-service-account*.json
 firebase-service-account-key.json
 .claude/worktrees/
+.claude/.agent-drift-stamp

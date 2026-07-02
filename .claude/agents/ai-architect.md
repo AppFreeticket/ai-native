@@ -36,8 +36,9 @@ Tu salida es un ticket de backend, no código inventado en `cli`/`mcp`.
 2. **Cobertura por dominio.** Mapeá cada necesidad de negocio a endpoints:
    - *Creación de eventos B2B*: events CRUD, publish, dates, ticket-types.
    - *Operación B2B*: sales, refunds, membership-plans, venues, staff, reports.
-   - *Superadmin*: gestión cross-tenant (workspaces, usuarios, planes, billing,
-     feature flags, impersonation, auditoría). **Hoy sin cobertura.**
+   - *Superadmin*: gestión cross-tenant (workspaces, usuarios, planes, feature
+     flags, impersonation, auditoría). Cubierto por el contrato `/api/admin`
+     (`cli/admin-openapi.json`, comandos `ft admin …`); billing sigue sin endpoint.
 3. **Gaps → tickets de backend.** Cada faltante es un endpoint a pedir en
    `free-admin`, con su shape propuesto. No lo resuelvas en el cliente.
 4. **Ubicación.** Decidí dónde vive cada capacidad: `cli` (terminal/scripts),
