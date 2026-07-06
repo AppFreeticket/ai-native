@@ -4,3 +4,6 @@
 [submodule "skills"]
 	path = skills
 	url = https://github.com/AppFreeticket/agent-skills.git
+[submodule "mcp"]
+	path = mcp
+	url = https://github.com/AppFreeticket/freeticket-mcp.git
