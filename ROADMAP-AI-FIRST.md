@@ -23,8 +23,8 @@ inventan en el cliente (regla de oro).
 | 4 | HTTP remoto + OAuth → claude.ai navegador | 0.6.0–0.7.0 | 🔶 transporte 0.6.0 ✅; OAuth 0.7.0 bloqueado | OAuth AS en free-admin |
 | 5 | mcp-ui en tools clave | 0.8.0 | ⬜ | hito 2 (writes) |
 | 6 | Plugin Claude Code + marketplace | — (plugin 1.0.0) | ⬜ | hitos 2–3 |
-| 7 | Contrato B2C shipped en free-admin | — | ⬜ requested | free-admin #189–191 |
-| 8 | Tools `public_*` + mcp-ui B2C | 0.9.0 | ⬜ | hitos 4 y 7 |
+| 7 | Contrato B2C shipped en free-admin (catálogo + checkout + post-venta) | — | ✅ jul 2026 | — |
+| 8 | Tools `public_*` (mcp-ui pendiente) | 0.9.0 | 🔶 tools ✅; mcp-ui ⬜ | hitos 4 y 7 |
 | 9 | Skill `freeticket-comprar` + GA 1.0.0 | 1.0.0 | ⬜ | hito 8 |
 
 Estados: ✅ hecho · 🔶 en curso · ⬜ pendiente.
@@ -254,25 +254,29 @@ Reemplaza `npx skills add` (copia one-shot → drift) como canal de distribució
 - [ ] Criterio de salida: sesión limpia, desinstalar skills sueltas, instalar
       plugin → `ft` + tools MCP + skills disponibles
 
-## Hito 7 — Contrato B2C shipped (free-admin)
+## Hito 7 — Contrato B2C shipped (free-admin) ✅ (jul 2026)
 
-Bloqueante externo. Issues ya abiertos, estado `requested`
-([#189](https://github.com/AppFreeticket/free-admin/issues/189) catálogo ·
-[#190](https://github.com/AppFreeticket/free-admin/issues/190) checkout ·
-[#191](https://github.com/AppFreeticket/free-admin/issues/191) post-venta).
-Tercer linaje semver: `/api/public/openapi.json`, sin auth para catálogo.
+Tercer linaje semver: `/api/public/openapi.json` 0.3.0, sin auth. Implementado
+en `free-admin/src/app/api/public/` + `src/lib/public-api/`.
 
-- [ ] `GET /public/events` (filtros `city`, `date`, `category`, `q`, cursor)
-- [ ] `GET /public/events/{slug}`
-- [ ] `GET /public/events/{slug}/availability` (fechas, tipos, precios, stock)
-- [ ] `POST /public/orders` (Idempotency-Key obligatorio, rate limit →
-      `order_id` + `checkout_url` de Mercado Pago)
-- [ ] `GET /public/orders/{id}` (`pending|paid|expired|cancelled` + tickets)
-- [ ] `POST /public/tickets/{code}/resend` (rate-limited, email enmascarado)
-- [ ] Al shipear: `contract-sync` + marcar filas `shipped` en CONTRACT-GAPS.md
+- [x] `GET /public/events` (filtros `city`, `q`, `from`/`to`, `page`, `sort`;
+      reusa la query autoritativa del portal). Nota: `category` no existe como
+      campo en el modelo — se omitió en vez de inventarlo.
+- [x] `GET /public/events/{slug}`
+- [x] `GET /public/events/{slug}/availability` (stock en vivo vía `getTicketAvailability`)
+- [x] `POST /public/orders` → venta PENDING + reserva (tx Serializable) +
+      `checkoutUrl` de Mercado Pago. Alcance acotado: admisión general (no
+      numerado / no members-only), un organizador por orden. **Idempotency-Key
+      por header: pendiente** (el builder OpenAPI no soporta header params aún y
+      no hay store de dedupe — ponytail, sin infra nueva).
+- [x] `GET /public/orders/{id}` (`pending|paid|expired|cancelled` + tickets al pagar)
+- [x] `POST /public/tickets/{code}/resend` (ya existía; rate-limited, email enmascarado)
+- [x] `contract-sync` (dump del spec → `mcp/public-openapi.json`) + filas
+      `shipped` en CONTRACT-GAPS.md
 
-Seguimiento activo: revisar los issues en cada sesión de planificación.
-Mientras tanto, hitos 2–6 avanzan en paralelo.
+⚠️ **Pendiente de QA antes de prod:** el checkout anónimo crea ventas + preferencias
+MP reales. Habilitar compra guest por API es además una decisión de producto (el
+checkout web exige cuenta con correo verificado). Falta test de integración con DB.
 
 ## Hito 8 — B2C en el MCP: tools `public_*` + mcp-ui (v0.9.0)
 
@@ -282,13 +286,13 @@ Mercado Pago (patrón agentic-commerce seguro).
 
 Tools (sin credenciales, viven en el mismo server remoto del hito 4):
 
-- [ ] `public_events_list` — catálogo con filtros
-- [ ] `public_events_get` — detalle por slug
-- [ ] `public_events_availability` — fechas, tipos, precios, stock
-- [ ] `public_orders_create` — crea orden → devuelve `checkout_url` (genera y
+- [x] `public_events_list` — catálogo con filtros
+- [x] `public_events_get` — detalle por slug
+- [x] `public_events_availability` — fechas, tipos, precios, stock
+- [x] `public_orders_create` — crea orden → devuelve `checkout_url` (genera y
       pasa `Idempotency-Key` automáticamente)
-- [ ] `public_orders_get` — estado post-pago + tickets emitidos
-- [ ] `public_tickets_resend` — reenvío al mail del comprador
+- [x] `public_orders_get` — estado post-pago + tickets emitidos
+- [x] `public_tickets_resend` — reenvío al mail del comprador
 
 mcp-ui B2C:
 
@@ -298,8 +302,8 @@ mcp-ui B2C:
 
 Cierre:
 
-- [ ] Codegen del tercer spec (`openapi-ts.public.config.ts` → `src/public-client/`)
-- [ ] Tests + README → publicar **0.9.0**
+- [x] Codegen del tercer spec (`openapi-ts.public.config.ts` → `src/public-client/`)
+- [x] Tests + README → publicar **0.9.0**
 
 **Criterio de salida:** desde claude.ai sin login, buscar un evento, armar la
 orden y recibir el link de pago; tras pagar, ver los tickets con `public_orders_get`.
