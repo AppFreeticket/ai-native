@@ -7,6 +7,3 @@
 [submodule "mcp"]
 	path = mcp
 	url = https://github.com/AppFreeticket/freeticket-mcp.git
-[submodule "agents-enterprise"]
-	path = agents-enterprise
-	url = https://github.com/AppFreeticket/agents-enterprise.git
