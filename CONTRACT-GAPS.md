@@ -15,6 +15,12 @@ Estados: `identified` (detectado, sin issue) · `requested` (issue abierto) ·
 | Funcionalidad | Endpoint(s) que faltan | Contrato | Cliente | Issue free-admin | Estado |
 |---|---|---|---|---|---|
 | **Permisos por workspace** — la sesión B2B ya alcanza todos los workspaces del usuario, pero el rol que devuelve la API es el **global**, no el efectivo en cada uno. `WorkspaceMember.role`, `AccessGrant` (secciones + `expires_at`) y la elevación de `OrgMember` existen en free-admin pero solo los aplica el dashboard. Consecuencia: un usuario acotado en el panel opera ese workspace sin límite por CLI/MCP ⚠️ | `GET /me` → `Workspace` con `role` y `sections` por fila (aditivo, B2B 1.6.0) **+** rol efectivo por workspace dentro de `requireApiAuth` (enforcement, no solo descubrimiento) | B2B | cli, mcp | [#403](https://github.com/AppFreeticket/free-admin/issues/403) | requested |
+| Staff de varios workspaces en una sola llamada — hoy `GET /staff` solo toma `limit`/`cursor`, así que un panel multi-workspace hace N requests. Hermano de #403: sin permisos por workspace, el fan-out además colecciona 403 | `GET /staff` con `workspaceIds` | B2B | cli, mcp | [#382](https://github.com/AppFreeticket/free-admin/issues/382) | requested |
+| Comprobante de liquidación por API — `GET /settlements` existe pero el PDF solo se baja desde el panel | `GET /settlements/{id}/document` | B2B | cli, mcp | [#381](https://github.com/AppFreeticket/free-admin/issues/381) | requested |
+| Superadmin: web template, dominio propio y asignación manual de plan — `AdminWorkspaceUpdate` solo expone `name`, `slug`, `type`, `isPublished` | `PATCH /workspaces/{id}` con `webTemplate` / `customDomain` + asignación de plan | Superadmin | cli, mcp | [#383](https://github.com/AppFreeticket/free-admin/issues/383) | requested |
+| DX del contrato para integraciones headless — `GET /events` solo filtra por `q` (sin fecha, estado, venue), spec desincronizado, paginación y errores heterogéneos, ciclo de vida de la sesión de comprador, techo de rol VIEWER | filtros en `GET /events` + normalización transversal | B2B | cli, mcp | [#357](https://github.com/AppFreeticket/free-admin/issues/357) | requested |
+| Contenido (ContentVideo / LiveStream) inaccesible headless — cero paths en el contrato | listado HTTP + playback token con credencial de API | B2B | mcp | [#356](https://github.com/AppFreeticket/free-admin/issues/356) | requested |
+| Área de socios: superficie de comprador insuficiente — solo `GET /customer/me` y `/customer/tickets` | membresía y suscripción del comprador, detalle de entrada, perfil editable | B2B (`/customer`) | mcp | [#355](https://github.com/AppFreeticket/free-admin/issues/355) | requested |
 | Login self-service por browser (device flow RFC 8628) — el user se loguea con su sesión y acuña su propio token, sin `pnpm api:key` server-side | `POST /auth/device/code`, `POST /auth/device/token` (+ página `/cli` de aprobación en free-admin) | B2B | cli ✓, mcp | [#160](https://github.com/AppFreeticket/free-admin/issues/160) | shipped |
 | Check-in / control de acceso en puerta | `POST /tickets/{code}/checkin`, `GET /tickets/{code}/access` | B2B | cli ✓, mcp | [#172](https://github.com/AppFreeticket/free-admin/issues/172) | shipped |
 | Tickets/asistentes individuales + reenvío | `GET /sales/{id}/tickets`, `POST /tickets/{code}/resend` (reemitir QR/email) | B2B | cli ✓ | [#173](https://github.com/AppFreeticket/free-admin/issues/173) | shipped |
@@ -34,10 +40,15 @@ Estados: `identified` (detectado, sin issue) · `requested` (issue abierto) ·
 
 <!-- endpoint-requester: agregá filas nuevas arriba de esta línea, ordenadas por prioridad. -->
 
-## Cobertura actual (barrido 2026-08-05)
+## Cobertura actual (barrido 2026-08-05, revisado 2026-08-08)
 
-Sin huecos abiertos: las 94 operaciones de los tres contratos tienen tool en el
-mcp, salvo 7 excluidas a propósito. El barrido está automatizado en
+**Cobertura ≠ sin huecos.** Las 94 operaciones que el contrato *expone* tienen
+tool en el mcp (salvo 7 excluidas a propósito) — eso es lo que mide la tabla de
+abajo. Lo que el contrato **no expone** son las 7 filas `requested` de arriba, y
+no las ve ningún barrido automático: salen de issues en free-admin. El barrido
+detecta endpoints nuevos sin tool, nunca funcionalidad que nadie pidió todavía.
+
+El barrido está automatizado en
 [`mcp/src/coverage.test.ts`](mcp/src/coverage.test.ts) — si `sync-openapi` trae
 un endpoint nuevo y nadie le hace tool, el test falla con su método y path.
 
