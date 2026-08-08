@@ -2,8 +2,10 @@
 
 Documento de ejecución y trazabilidad, de inicio a fin, para convertir FreeTicket
 en plataforma AI-first: **MCP con cobertura total del contrato (B2B + admin + B2C)**,
-accesible desde **claude.ai en el navegador** (HTTP remoto + OAuth), con **mcp-ui**
-para interacción visual, y distribución vía **plugin de Claude Code**.
+accesible desde **claude.ai en el navegador** (HTTP remoto + OAuth), con
+**MCP Apps** para interacción visual, distribución como **plugin portable
+([Agent Plugins 1.0.0](https://agent-plugins.org))**, y una sesión B2B que vale
+en **todos los workspaces del usuario con el permiso real de cada uno**.
 
 **Cómo se traza:** cada tarea es un checkbox. Se marca en el mismo PR que la
 completa. La tabla de hitos (abajo) refleja el estado agregado. Los huecos de
@@ -18,14 +20,16 @@ inventan en el cliente (regla de oro).
 |---|---|---|---|---|
 | 0 | Fundaciones (codegen, submódulo, auth compartida) | 0.3.0 | ✅ jul 2026 | — |
 | 1 | Ola A — reads B2B (27 tools) | 0.3.0 | ✅ jul 2026 | — |
-| 2 | Ola B — writes B2B (24/29 tools; 5 con hueco de contrato) | 0.4.0 | ✅ jul 2026 | nada |
+| 2 | Ola B — writes B2B (29/29 tools; el hueco de contrato cerró en 1.5.0) | 0.4.0 | ✅ jul 2026 | nada |
 | 3 | Ola C — admin completo (15 tools) | 0.5.0 | ✅ jul 2026 | nada |
-| 4 | HTTP remoto + OAuth → claude.ai navegador | 0.6.0–0.7.0 | 🔶 transporte 0.6.0 ✅; OAuth 0.7.0 bloqueado | OAuth AS en free-admin |
-| 5 | mcp-ui en tools clave | 0.8.0 | ⬜ | hito 2 (writes) |
-| 6 | Plugin Claude Code + marketplace | — (plugin 1.0.0) | ⬜ | hitos 2–3 |
+| 4 | HTTP remoto + OAuth → claude.ai navegador | 0.6.0–0.7.0 | ✅ AS embebido en el mcp (0.10.0) | — |
+| 5 | UI en el host — MCP Apps, no `mcp-ui` | 0.12.0 | ✅ ago 2026 | hito 2 (writes) |
+| 6 | Plugin portable (estándar Agent Plugins 1.0.0) + marketplace | — (plugin 0.1.1) | ✅ instalable, PR #13 sin mergear | hitos 2–3 |
 | 7 | Contrato B2C shipped en free-admin (catálogo + checkout + post-venta) | — | ✅ jul 2026 | — |
-| 8 | Tools `public_*` (mcp-ui pendiente) | 0.9.0 | 🔶 tools ✅; mcp-ui ⬜ | hitos 4 y 7 |
+| 8 | Tools `public_*` + vista | 0.9.0 / 0.12.0 | ✅ ago 2026 | hitos 4 y 7 |
 | 9 | Skill `freeticket-comprar` + GA 1.0.0 | 1.0.0 | ⬜ | hito 8 |
+| 10 | Permisos por workspace (sesión B2B multi-workspace con el rol real de cada uno) | 0.14.0 | 🔶 issue #403 abierto | free-admin #403 |
+| 11 | Publicar `@freeticket/mcp` en npm (hoy no existe en el registry) | 0.13.0 | ⬜ falta `npm login` | — |
 
 Estados: ✅ hecho · 🔶 en curso · ⬜ pendiente.
 
@@ -175,8 +179,8 @@ Transporte (0.6.0):
 - [x] Transporte dual: mantener stdio y sumar **Streamable HTTP**
       (`StreamableHTTPServerTransport` del SDK); factoría común de server
       (`src/server.ts` `buildServer`) para ambos entrypoints
-- [ ] Deploy en Vercel (`mcp.appfreeticket.com/mcp`) con `mcp-handler` /
-      route handler; delegar pipeline en `ft-devops-ci`
+- [x] Deploy en Vercel (`mcp.appfreeticket.com/mcp`) con `mcp-handler` /
+      route handler — vivo (metadata RFC 8414 responde 200)
 - [x] Server remoto **stateless**: credenciales solo del request (clients
       aislados por sesión), nunca lee `~/.freeticket/config.json`
 - [x] Interim de prueba: Bearer `FT_API_KEY` por header (sirve para Claude Code
@@ -188,11 +192,13 @@ OAuth 2.1 (0.7.0) — claude.ai lo exige para connectors con credenciales:
 
 - [x] Resource-server side en el mcp: `WWW-Authenticate` + protected resource
       metadata (RFC 9728) en `/.well-known/oauth-protected-resource`
-- [ ] `endpoint-requester`: pedir en free-admin el authorization server OAuth
-      (dynamic client registration + PKCE + token que mapea a API key +
-      workspace) y registrar la fila en CONTRACT-GAPS.md  ← **bloqueante**
-- [ ] Validar el token OAuth en el mcp (hoy sólo Bearer API key) una vez exista el AS
-- [ ] Página de autorización en free-admin (reusar la de device flow `/cli`)
+- [x] Authorization server — resuelto **embebiéndolo en el propio mcp** (0.10.0)
+      en vez de pedirlo en free-admin: tokens stateless que sellan API key +
+      workspace + sesión admin. `FT_OAUTH_ISSUER` permite delegar a un AS de
+      free-admin si algún día existe. Ver fila `shipped` en CONTRACT-GAPS.md
+- [x] Validar el token OAuth en el mcp (además del Bearer API key)
+- [x] Página de consentimiento servida por el mcp, con login por device flow
+      contra la sesión de free-admin (0.11.0)
 
 Cierre:
 
@@ -204,55 +210,146 @@ Cierre:
 **Criterio de salida:** un usuario sin terminal opera su workspace desde el
 chat del navegador.
 
-## Hito 5 — mcp-ui: interacción visual (v0.8.0)
+## Hito 5 — UI en el host ✅ (v0.12.0, ago 2026)
 
-Objetivo: los tools clave devuelven **UIResource embebida** (`@mcp-ui/server`)
-además del JSON. El agente razona con el JSON; el humano ve UI. Render puro del
-payload — cero lógica de negocio en la UI.
+Objetivo cumplido, **por otro camino que el planeado**: en vez de `@mcp-ui/server`
+(librería de terceros) se implementó la extensión oficial
+**`io.modelcontextprotocol/ui`** (MCP Apps, spec `2026-01-26`) a mano, sin
+dependencia nueva. El dialecto JSON-RPC son ~40 líneas; traer un bundler y un
+paso de build para eso no se pagaba, y la extensión oficial es la que entiende
+claude.ai. El agente razona con el JSON; el humano ve la vista.
 
 Infraestructura:
 
-- [ ] Dependencia `@mcp-ui/server`; helper `withUi(tool, render)` que adjunta
-      el recurso `ui://` al resultado sin tocar el payload estructurado
-- [ ] Fallback verificado: clientes sin soporte UI ignoran el resource y usan
-      el JSON (probar en Claude Code stdio)
+- [x] Recurso `ui://freeticket/view.html` (`text/html;profile=mcp-app`), servido
+      desde el bundle — sin lecturas de disco, así funciona igual en stdio y en
+      la Vercel Function
+- [x] Helper `uiTool()` que adjunta `_meta.ui.resourceUri` sin tocar el payload;
+      el resultado viaja también en `structuredContent`
+- [x] Fallback: los hosts sin la extensión ignoran `_meta` y ven el mismo texto
 
-UI por tool (HTML self-contained, sin requests externos):
+Un solo view en vez de una plantilla por tool: el render se decide por la forma
+del payload (**array → tabla**, **objeto → tiles de KPI**), así no hay N
+plantillas que mantener contra un contrato que cambia.
 
-- [ ] `reports_summary` / `reports_by_event` / `reports_timeseries` → dashboard:
-      tarjetas KPI + gráfico de serie temporal
-- [ ] `reports_inventory` → barras de capacidad (vendido/reservado/disponible)
-- [ ] `events_list` / `events_get` → tarjetas de evento: estado, fechas, stock
-- [ ] `sales_list` → tabla con filtros por estado/fecha
-- [ ] Writes destructivos (`*_delete`, `sales_refund`, `sales_cancel`) →
-      preview de confirmación: qué se va a borrar/reembolsar antes del commit
-- [ ] `tickets_checkin` → resultado visual del acceso (verde/rojo + motivo)
+- [x] 25 tools con vista: todos los listados y todos los reportes
+- [x] Marca garantizada: logo y acento de FreeTicket no sobreescribibles por el
+      host; del host se adoptan solo `--color-*` / `--font-*`
+- [x] `data-theme` + `color-scheme`, moneda en el `locale` del host,
+      `event.source` validado, `ui/resource-teardown` respondido
 
 Cierre:
 
-- [ ] Snapshot tests del render (payload fijo → HTML estable)
-- [ ] README: captura + lista de tools con UI → publicar **0.8.0**
+- [x] Tests reales del view en jsdom (tabla, tiles, error, escape de payloads,
+      invariantes de marca) + guarda que falla si un listado nuevo no tiene vista
+- [x] README con el detalle → publicado **0.12.0**
 
-**Criterio de salida:** en claude.ai, `reports_summary` muestra dashboard y un
-delete muestra preview de confirmación.
+Quedó fuera a propósito: preview de confirmación en los writes destructivos y
+resultado visual del check-in. La confirmación ya la pide el host por
+`destructiveHint`; duplicarla en una vista es UI que hay que mantener para
+repetir algo que ya pasa.
 
-## Hito 6 — Plugin de Claude Code (fin del drift de skills)
+## Hito 6 — Plugin portable: estándar Agent Plugins 1.0.0 (fin del drift de skills)
 
-Objetivo: una instalación versionada que empaqueta skills + MCP + agentes.
-Reemplaza `npx skills add` (copia one-shot → drift) como canal de distribución.
+Objetivo: una instalación versionada que empaqueta skills + MCP. Reemplaza
+`npx skills add` (copia one-shot → drift) como canal de distribución.
 
-- [ ] Repo `AppFreeticket/freeticket-plugin`:
-      `.claude-plugin/plugin.json` + `skills/` (freeticket-cli,
-      freeticket-eventos) + `agents/` + `.mcp.json` (`npx -y @freeticket/mcp`)
-- [ ] Marketplace `AppFreeticket/claude-marketplace`
-      (`.claude-plugin/marketplace.json`); instalación:
-      `/plugin marketplace add AppFreeticket/claude-marketplace` →
-      `/plugin install freeticket`
+**Cambio de plan (ago 2026):** en vez de un formato propio de Claude Code
+(`.claude-plugin/`), se adopta [**Agent Plugins 1.0.0**](https://agent-plugins.org)
+— estándar abierto y vendor-neutral (Vercel, VS Code, GitHub CLI lo implementan)
+con el mismo contenido: `plugin.json` + `skills/` + `mcp.json`. Un solo paquete
+sirve a todos los clientes compatibles en vez de uno por host.
+
+**Y no hace falta repo nuevo:** `AppFreeticket/agent-skills` ya tiene el layout
+exacto que pide el spec (`skills/<name>/SKILL.md` en la raíz). Se le agregan dos
+manifests y ese repo *es* el plugin. Crear `freeticket-plugin` para duplicar
+tres skills era mover archivos para nada.
+
+- [x] `plugin.json` + `mcp.json` en `agent-skills` (Agent Plugins 1.0.0,
+      `name: freeticket`), validados contra los schemas oficiales
+- [x] `.claude-plugin/plugin.json` — Claude Code todavía **no** lee el layout del
+      estándar (espera el manifest en `.claude-plugin/`). Los dos manifests
+      declaran el mismo server con distinto nombre de transporte
+      (`streamable-http` en el estándar, `http` en Claude Code): la duplicación
+      es esa divergencia de formatos, no dos configuraciones.
+- [x] `.claude-plugin/marketplace.json` **en el mismo repo** — un repo de
+      marketplace aparte para listar un solo plugin no se paga
+- [x] README de `agent-skills`: instalación como plugin además de `npx skills`
+- [x] Instalación E2E verificada (no solo `plugin validate`): marketplace add →
+      install → las 3 skills en el cache y el server en `claude mcp list`
 - [ ] Release pipeline (`ft-devops-ci`): tag en cli/mcp/skills → bump del
-      plugin + commit del marketplace; el plugin pinnea versión de
-      `@freeticket/mcp`
-- [ ] Criterio de salida: sesión limpia, desinstalar skills sueltas, instalar
-      plugin → `ft` + tools MCP + skills disponibles
+      `version` en **los dos** `plugin.json`. No es cosmético: el string de
+      versión es la señal de update del cache — sin bump, `plugin update` deja
+      al usuario en la copia vieja (verificado).
+- [ ] Merge de [agent-skills#13](https://github.com/AppFreeticket/agent-skills/pull/13)
+      → `/plugin marketplace add AppFreeticket/agent-skills` sin `@ref`
+
+Transporte: el plugin declara el **server remoto** `mcp.appfreeticket.com/mcp`
+(OAuth en el browser al primer uso). El stdio `npx -y @freeticket/mcp` que se
+había puesto primero **no funciona: el paquete no está publicado en npm** — el
+plugin registraba el server y moría con "Connection closed". Ver hito 11.
+
+Fuera de alcance: `extensions` con namespace de cliente. Hoy no hay nada que
+configurar por host; el día que lo haya, es una clave más en `plugin.json`.
+
+## Hito 11 — Publicar `@freeticket/mcp` en npm
+
+`@freeticket/cli` está publicado (0.8.0); `@freeticket/mcp` **nunca se publicó**,
+aunque el skill `freeticket-mcp`, el README del mcp y el roadmap lo dan por
+hecho. Sin eso no existe el camino stdio local: ni `npx -y @freeticket/mcp`, ni
+Claude Desktop, ni Cursor sin connector remoto.
+
+- [ ] `npm login` (falta auth: `npm whoami` da 401) y publicar `@freeticket/mcp`
+      0.13.0 con `--access public`
+- [ ] Verificar `npx -y @freeticket/mcp` contra el server real
+- [ ] Quitar el aviso "no está en npm" del skill `freeticket-mcp`
+- [ ] Decidir el transporte del plugin: seguir en remoto (cero instalación) o
+      sumar el stdio como segundo server. Dos servers = tools duplicados en el
+      host, así que probablemente sea remoto por defecto y stdio documentado.
+- [ ] Publicar el server en directorios MCP (va con el hito 9)
+
+## Hito 10 — Permisos por workspace (v0.14.0)
+
+Objetivo: que una sesión B2B valga **en todos los workspaces del usuario con el
+permiso real que tiene en cada uno**. Hoy vale la mitad: el alcance
+multi-workspace ya funciona, los permisos no.
+
+Diagnóstico (ago 2026, auditoría del flujo de login de punta a punta):
+
+- ✅ El device flow ya devuelve `workspaces[]` completo y `pickActiveOrg` acepta
+      cualquier workspace accesible por `X-Workspace-Id`. El alcance está.
+- ❌ `requireApiAuth` (`free-admin/src/lib/api/auth.ts`) devuelve `user.role` —
+      el rol **global**, idéntico en todos los workspaces.
+- ❌ `WorkspaceMember.role`, `AccessGrant` (secciones + `expires_at`) y la
+      elevación de `OrgMember` OWNER/ADMIN existen en la DB y los aplica **solo**
+      el dashboard (`elevateOrgAdmin`, `resolveSectionAccess`). La API v1 no.
+- ⚠️ Consecuencia: un usuario acotado desde `/dashboard/accesos` en el workspace B
+      conserva el límite en el panel y lo pierde con su propia API key de
+      `ft login`. Y el inverso: un OWNER elevado en el panel come 403 por API.
+- ❌ `GET /me` no dice permisos: `Workspace = {id, name, slug}`. El fan-out
+      `workspace: "all"` del mcp los descubre a fuerza de 403.
+
+Backend (bloqueante, [free-admin #403](https://github.com/AppFreeticket/free-admin/issues/403)):
+
+- [ ] `Workspace` gana `role` y `sections` por fila en `GET /me` (aditivo, B2B 1.6.0)
+- [ ] Rol efectivo por workspace dentro de `requireApiAuth` — extraer lo que ya
+      hace `elevateOrgAdmin`, parametrizado por workspace en vez de por cookie
+- [ ] `AccessGrant` acotado y vencido cortan igual por API que por panel
+
+Clientes (después del contrato, nunca antes — regla de oro):
+
+- [ ] `contract-sync` → propagar 1.6.0 a `cli` y `mcp`
+- [ ] `ft workspace list`: columnas `role` y `access`
+- [ ] `ft login`: si hay >1 workspace, listarlos con su rol (hoy toma
+      `workspaces[0]` en silencio, `cli/src/commands/auth.ts:143`)
+- [ ] `whoami` del mcp: rol por workspace en la respuesta
+- [ ] Fan-out `workspace: "all"`: filtrar targets por permiso antes de disparar,
+      en vez de coleccionar 403 en `errors[]`
+- [ ] Consent del mcp remoto: mostrar el rol junto a cada workspace elegible
+
+**Criterio de salida:** un usuario con permisos distintos en dos workspaces hace
+`ft login` una vez, ve ambos con su rol, y una escritura que su rol no permite en
+el workspace B es rechazada por API **igual que la rechaza el panel**.
 
 ## Hito 7 — Contrato B2C shipped (free-admin) ✅ (jul 2026)
 
@@ -294,10 +391,12 @@ Tools (sin credenciales, viven en el mismo server remoto del hito 4):
 - [x] `public_orders_get` — estado post-pago + tickets emitidos
 - [x] `public_tickets_resend` — reenvío al mail del comprador
 
-mcp-ui B2C:
+Vista B2C:
 
-- [ ] Catálogo → tarjetas con imagen/precio/stock
-- [ ] Availability → selector de fecha + tipo
+- [x] Catálogo (`public_events_list`) → tabla con el view compartido (v0.12.0)
+- [ ] Availability → selector de fecha + tipo. Requiere un view interactivo que
+      llame tools desde el iframe: es otra clase de trabajo, no el render del
+      hito 5. Va con el hito 9, donde la skill de compra define el flujo.
 - [ ] Orden → resumen con botón al `checkout_url`; estado con polling visual
 
 Cierre:
@@ -317,7 +416,7 @@ orden y recibir el link de pago; tras pagar, ver los tickets con `public_orders_
 - [ ] Publicar el server remoto en directorios MCP (registry oficial, etc.)
 - [ ] Auditoría final `oss-maintainer` en las tres piezas
 - [ ] Publicar **@freeticket/mcp 1.0.0** — contrato completo B2B + admin + B2C,
-      stdio + HTTP, mcp-ui
+      stdio + HTTP, MCP Apps
 
 **Criterio de salida GA:** los tres públicos operan solo con el MCP —
 organizador (B2B), superadmin (admin) y comprador (B2C) — desde terminal o

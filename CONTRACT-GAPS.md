@@ -14,6 +14,7 @@ Estados: `identified` (detectado, sin issue) · `requested` (issue abierto) ·
 
 | Funcionalidad | Endpoint(s) que faltan | Contrato | Cliente | Issue free-admin | Estado |
 |---|---|---|---|---|---|
+| **Permisos por workspace** — la sesión B2B ya alcanza todos los workspaces del usuario, pero el rol que devuelve la API es el **global**, no el efectivo en cada uno. `WorkspaceMember.role`, `AccessGrant` (secciones + `expires_at`) y la elevación de `OrgMember` existen en free-admin pero solo los aplica el dashboard. Consecuencia: un usuario acotado en el panel opera ese workspace sin límite por CLI/MCP ⚠️ | `GET /me` → `Workspace` con `role` y `sections` por fila (aditivo, B2B 1.6.0) **+** rol efectivo por workspace dentro de `requireApiAuth` (enforcement, no solo descubrimiento) | B2B | cli, mcp | [#403](https://github.com/AppFreeticket/free-admin/issues/403) | requested |
 | Login self-service por browser (device flow RFC 8628) — el user se loguea con su sesión y acuña su propio token, sin `pnpm api:key` server-side | `POST /auth/device/code`, `POST /auth/device/token` (+ página `/cli` de aprobación en free-admin) | B2B | cli ✓, mcp | [#160](https://github.com/AppFreeticket/free-admin/issues/160) | shipped |
 | Check-in / control de acceso en puerta | `POST /tickets/{code}/checkin`, `GET /tickets/{code}/access` | B2B | cli ✓, mcp | [#172](https://github.com/AppFreeticket/free-admin/issues/172) | shipped |
 | Tickets/asistentes individuales + reenvío | `GET /sales/{id}/tickets`, `POST /tickets/{code}/resend` (reemitir QR/email) | B2B | cli ✓ | [#173](https://github.com/AppFreeticket/free-admin/issues/173) | shipped |
@@ -28,8 +29,29 @@ Estados: `identified` (detectado, sin issue) · `requested` (issue abierto) ·
 | Descubrimiento público B2C (catálogo para agentes de compradores) | `GET /public/events` (filtros `city`, `date`, `category`, `q`, cursor), `GET /public/events/{slug}`, `GET /public/events/{slug}/availability` (fechas, tipos, precios, stock) — sin auth, cache-friendly, solo publicados | B2C (`/api/public`) | mcp ✓ | [#189](https://github.com/AppFreeticket/free-admin/issues/189) | shipped |
 | Compra por agente B2C (checkout vía Mercado Pago, el agente nunca toca el pago) | `POST /public/orders` (buyer email + items, header `Idempotency-Key` obligatorio, rate limit → `order_id` + `checkout_url` MP), `GET /public/orders/{id}` (estado `pending\|paid\|expired\|cancelled` + tickets al pagar) | B2C (`/api/public`) | mcp ✓ | [#190](https://github.com/AppFreeticket/free-admin/issues/190) | shipped |
 | Post-venta comprador B2C (reenvío de ticket sin credenciales) | `POST /public/tickets/{code}/resend` (reenvía QR/email al mail del comprador, rate-limited, email enmascarado en la respuesta) | B2C (`/api/public`) | mcp ✓ | [#191](https://github.com/AppFreeticket/free-admin/issues/191) | shipped |
-
 | Authorization server OAuth 2.1 para el MCP remoto — claude.ai exige OAuth para connectors con credenciales. Resuelto **embebiendo el AS en el propio mcp** (v0.10.0): tokens stateless que sellan API key + workspace + sesión admin; no requirió endpoint nuevo en free-admin. `FT_OAUTH_ISSUER` permite delegar a un AS de free-admin si algún día existe | `/.well-known/oauth-authorization-server` (RFC 8414), dynamic client registration (RFC 7591), `/authorize` + `/token` con PKCE y página de consentimiento — todo servido por el mcp | B2B | mcp ✓ | — | shipped |
-| Update endpoints sin `requestBody` en el spec — el mcp no puede tipar el cuerpo, así que `event_dates_create/update`, `ticket_types_update`, `plans_update` y `venues_update` quedan fuera de la Ola B | `POST /events/{id}/dates`, `PATCH /events/{id}/dates/{dateId}`, `PATCH /ticket-types/{id}`, `PATCH /membership-plans/{id}`, `PATCH /venues/{id}` — declarar `requestBody` (schemas `EventDateCreate/Update`, `TicketTypeUpdate`, `MembershipPlanUpdate`, `VenueUpdate`) | B2B | mcp | — | identified |
+| Update endpoints sin `requestBody` en el spec — sin cuerpo declarado el mcp no podía tipar `event_dates_create/update`, `ticket_types_update`, `plans_update` ni `venues_update` | `POST /events/{id}/dates`, `PATCH /events/{id}/dates/{dateId}`, `PATCH /ticket-types/{id}`, `PATCH /membership-plans/{id}`, `PATCH /venues/{id}` — con `requestBody` desde el contrato 1.5.0 | B2B | cli ✓, mcp ✓ | — | shipped |
 
 <!-- endpoint-requester: agregá filas nuevas arriba de esta línea, ordenadas por prioridad. -->
+
+## Cobertura actual (barrido 2026-08-05)
+
+Sin huecos abiertos: las 94 operaciones de los tres contratos tienen tool en el
+mcp, salvo 7 excluidas a propósito. El barrido está automatizado en
+[`mcp/src/coverage.test.ts`](mcp/src/coverage.test.ts) — si `sync-openapi` trae
+un endpoint nuevo y nadie le hace tool, el test falla con su método y path.
+
+| Contrato | Operaciones | Con tool | Excluidas |
+|---|---|---|---|
+| B2B `/api/v1` | 66 | 61 | 5 |
+| Superadmin `/api/admin` | 22 | 20 | 2 |
+| Público `/api/public` | 6 | 6 | 0 |
+
+Exclusiones deliberadas (el motivo vive junto al test, no solo acá):
+
+- `postAuthDeviceCode`, `postAuthDeviceToken` — mecánica del device flow; la usa
+  el authorization server embebido del mcp, no un agente.
+- `postApiKeys`, `deleteApiKeysId`, `postTokens`, `deleteTokensId` — acuñar y
+  revocar credenciales se hace desde el CLI, con un humano en el teclado.
+- `postApiCustomerAuthEnterpriseExchange` — mintea sesiones de comprador de
+  terceros; es server-to-server entre free-admin y el integrador.
