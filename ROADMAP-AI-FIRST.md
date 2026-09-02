@@ -28,8 +28,9 @@ inventan en el cliente (regla de oro).
 | 7 | Contrato B2C shipped en free-admin (catálogo + checkout + post-venta) | — | ✅ jul 2026 | — |
 | 8 | Tools `public_*` + vista | 0.9.0 / 0.12.0 | ✅ ago 2026 | hitos 4 y 7 |
 | 9 | Skill `freeticket-comprar` + GA 1.0.0 | 1.0.0 | ⬜ | hito 8 |
-| 10 | Permisos por workspace (sesión B2B multi-workspace con el rol real de cada uno) | 0.14.0 | 🔶 issue #403 abierto | free-admin #403 |
-| 11 | Publicar `@freeticket/mcp` en npm (hoy no existe en el registry) | 0.13.0 | ⬜ falta `npm login` | — |
+| 10 | Permisos por workspace (sesión B2B multi-workspace con el rol real de cada uno) | 0.14.0 | ✅ contrato 1.7.0 (queda el rol en el consent) | free-admin #403 ✅ |
+| 11 | Publicar `@freeticket/mcp` en npm (hoy no existe en el registry) | 0.14.0 | ⬜ falta `npm login` | — |
+| 12 | Paridad con el sitio: área de socios, contenido y comprobantes por contrato | 0.14.0 | ✅ sep 2026 | free-admin #355 #356 #381 #383 |
 
 Estados: ✅ hecho · 🔶 en curso · ⬜ pendiente.
 
@@ -300,13 +301,41 @@ hecho. Sin eso no existe el camino stdio local: ni `npx -y @freeticket/mcp`, ni
 Claude Desktop, ni Cursor sin connector remoto.
 
 - [ ] `npm login` (falta auth: `npm whoami` da 401) y publicar `@freeticket/mcp`
-      0.13.0 con `--access public`
+      0.14.0 con `--access public`
 - [ ] Verificar `npx -y @freeticket/mcp` contra el server real
 - [ ] Quitar el aviso "no está en npm" del skill `freeticket-mcp`
 - [ ] Decidir el transporte del plugin: seguir en remoto (cero instalación) o
       sumar el stdio como segundo server. Dos servers = tools duplicados en el
       host, así que probablemente sea remoto por defecto y stdio documentado.
 - [ ] Publicar el server en directorios MCP (va con el hito 9)
+
+## Hito 12 — Paridad con el sitio ✅ (v0.14.0, sep 2026)
+
+free-admin cerró seis brechas del ledger de una tanda (contratos **1.7.0** /
+**1.3.0** / **0.4.0**) y los clientes estaban parados en 1.5.0: 15 operaciones
+B2B y 1 de superadmin sin cliente. El principio es el de siempre — el contrato
+manda, el cliente sigue — y acá el cliente venía atrasado, que es la otra forma
+de romperlo.
+
+- [x] `sync-openapi` ×3 en `cli` y `mcp` + regeneración de los clientes
+- [x] **Área de socios** (#355): 10 tools `customer_*` — membresía, alta y baja
+      de suscripción, perfil editable, detalle y cancelación de la propia compra,
+      logout. Misma superficie que el área de socios del sitio
+- [x] **Contenido** (#356): `content_videos` · `content_posts` · `content_lives` ·
+      `content_live_get` + `content_playback_token` (30 min en vivo, 1 h video)
+- [x] **Comprobantes de liquidación** (#381): `settlements_document` /
+      `settlements_proof` y `ft settlements document <id>`. La API responde 302 a
+      storage privado: el cliente corta en la redirección y devuelve la URL
+      firmada (5 min) en vez de meter un PDF en el contexto del modelo
+- [x] **Superadmin** (#383): `admin_workspaces_assign_plan` + `webTemplate` /
+      `customDomain` en el update; `ft admin workspaces plan`
+- [x] **Staff cross-workspace nativo** (#382): `workspaceIds` del contrato, una
+      llamada en vez del fan-out de N requests
+- [x] Filtros de `GET /events` (`status`, `withTotal`) — parte de #357, que sigue
+      abierto por el resto (fecha, venue, normalización transversal)
+- [x] `coverage.test.ts` verde contra los tres specs nuevos: 110 operaciones,
+      103 tools, 7 exclusiones deliberadas
+- [x] Skills y plugin al día (103 tools, comandos nuevos, plugin 0.2.0)
 
 ## Hito 10 — Permisos por workspace (v0.14.0)
 
@@ -329,23 +358,26 @@ Diagnóstico (ago 2026, auditoría del flujo de login de punta a punta):
 - ❌ `GET /me` no dice permisos: `Workspace = {id, name, slug}`. El fan-out
       `workspace: "all"` del mcp los descubre a fuerza de 403.
 
-Backend (bloqueante, [free-admin #403](https://github.com/AppFreeticket/free-admin/issues/403)):
+Backend ✅ ([free-admin #403](https://github.com/AppFreeticket/free-admin/issues/403), contrato **1.7.0** — no 1.6.0):
 
-- [ ] `Workspace` gana `role` y `sections` por fila en `GET /me` (aditivo, B2B 1.6.0)
-- [ ] Rol efectivo por workspace dentro de `requireApiAuth` — extraer lo que ya
-      hace `elevateOrgAdmin`, parametrizado por workspace en vez de por cookie
-- [ ] `AccessGrant` acotado y vencido cortan igual por API que por panel
+- [x] `GET /me` devuelve `WorkspaceAccess` por fila: `role` efectivo + `sections`
+      (`null` = sin acotar, `[]` = vencido o revocado). `Me.role` queda deprecado
+- [x] Rol efectivo por workspace dentro de `requireApiAuth`
+- [x] `AccessGrant` acotado y vencido cortan igual por API que por panel
 
 Clientes (después del contrato, nunca antes — regla de oro):
 
-- [ ] `contract-sync` → propagar 1.6.0 a `cli` y `mcp`
-- [ ] `ft workspace list`: columnas `role` y `access`
-- [ ] `ft login`: si hay >1 workspace, listarlos con su rol (hoy toma
-      `workspaces[0]` en silencio, `cli/src/commands/auth.ts:143`)
-- [ ] `whoami` del mcp: rol por workspace en la respuesta
-- [ ] Fan-out `workspace: "all"`: filtrar targets por permiso antes de disparar,
-      en vez de coleccionar 403 en `errors[]`
-- [ ] Consent del mcp remoto: mostrar el rol junto a cada workspace elegible
+- [x] `contract-sync` → 1.7.0 propagado a `cli` y `mcp`
+- [x] `ft workspace list`: columnas `role` y `access`
+- [x] `whoami` del mcp: el rol por workspace viene en la respuesta del contrato
+- [x] Fan-out `workspace: "all"`: descarta los workspaces con `sections: []`
+      antes de disparar, en vez de coleccionar 403 en `errors[]`
+- [ ] `ft login`: si hay >1 workspace, listarlos con su rol. **Bloqueado**: el
+      `DeviceTokenResponse` sigue devolviendo `Workspace` (id/name/slug) sin rol;
+      hoy toma `workspaces[0]` en silencio (`cli/src/commands/auth.ts:143`)
+- [ ] Consent del mcp remoto: mostrar el rol junto a cada workspace elegible —
+      mismo bloqueo que el anterior (haría falta un `GET /me` extra con el token
+      recién acuñado)
 
 **Criterio de salida:** un usuario con permisos distintos en dos workspaces hace
 `ft login` una vez, ve ambos con su rol, y una escritura que su rol no permite en
