@@ -11,3 +11,5 @@ dist/
 firebase-service-account-key.json
 .claude/worktrees/
 .claude/.agent-drift-stamp
+.codex/hooks.json
+.codex/hooks/

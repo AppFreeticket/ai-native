@@ -1,37 +1,43 @@
 # ai-native
 
-Tooling **open source** de FreeTicket para agentes de IA (Claude Code y compatibles).
-Repo paraguas: agrupa, vía git submodules, las piezas que orbitan el contrato
-**B2B OpenAPI** de FreeTicket (`/api/v1`).
+FreeTicket's **open source** tooling for AI agents (Claude Code and compatible
+clients). This umbrella repo groups, through git submodules, the pieces that
+orbit FreeTicket's **OpenAPI contracts**.
 
-| Submódulo | Repo | Qué es |
+| Submodule | Repo | What it is |
 |---|---|---|
-| [`cli/`](cli) | [AppFreeticket/freeticket-cli](https://github.com/AppFreeticket/freeticket-cli) | Binario `ft` (npm `@freeticket/cli`). Opera el dominio B2B desde la terminal. |
-| [`skills/`](skills) | [AppFreeticket/agent-skills](https://github.com/AppFreeticket/agent-skills) | Agent skills instalables (`npx skills add AppFreeticket/agent-skills@<skill>`). |
-| [`mcp/`](mcp) | _por publicar_ | Servidor MCP de FreeTicket. Expone el dominio B2B como tools a cualquier cliente MCP. |
+| [`cli/`](cli) | [AppFreeticket/freeticket-cli](https://github.com/AppFreeticket/freeticket-cli) | The `ft` binary (npm `@freeticket/cli`). Operates the B2B domain from your terminal. |
+| [`skills/`](skills) | [AppFreeticket/agent-skills](https://github.com/AppFreeticket/agent-skills) | Installable agent skills, packaged as the `freeticket` plugin (`npx skills add AppFreeticket/agent-skills@<skill>`). |
+| [`mcp/`](mcp) | [AppFreeticket/freeticket-mcp](https://github.com/AppFreeticket/freeticket-mcp) | FreeTicket's MCP server, live at `mcp.appfreeticket.com`. Exposes the B2B, superadmin and public contracts as tools. |
 
-`free-admin` (la app) es el **backend**: define el contrato `/api/v1/openapi.json`
-que `cli` y `mcp` consumen. Esa es la única fuente de verdad; los clientes se
-regeneran desde el spec, nunca al revés.
+`free-admin` (the app) is the **backend**: it defines the contracts that `cli`
+and `mcp` consume. That is the only source of truth — clients are regenerated
+from the spec, never the other way around.
 
-## Por qué un paraguas y no un monorepo
+## Why an umbrella and not a monorepo
 
-Cada pieza se publica por separado (npm, `npx skills`, registro MCP) y tiene su
-propio ciclo de release. Los submodules mantienen historiales y CI independientes;
-este repo solo da una vista unificada y la capa de agentes cross-cutting en
-[`.claude/agents/`](.claude/agents).
+Each piece ships separately (npm, `npx skills`, the MCP registry) and has its
+own release cycle. Submodules keep their histories and CI independent; this repo
+only provides the unified view and the cross-cutting agent layer in
+[`.claude/agents/`](.claude/agents) (mirrored for Codex in `.codex/agents/`).
 
-## Trabajar con submodules
+## Working with submodules
 
 ```bash
 git clone --recurse-submodules https://github.com/AppFreeticket/ai-native.git
-git submodule update --remote        # traer último de cada pieza
+git submodule update --remote        # pull the latest of each piece
 ```
 
-## Convenciones
+## Conventions
 
-- **El contrato manda.** Un cambio en `/api/v1` se propaga a `cli` y `mcp`
-  regenerando su cliente desde `openapi.json` (ver agente `contract-sync`).
-- **Todo open source, licencia MIT.** README + LICENSE + CHANGELOG en cada pieza.
-- **Docs de skills/MCP en inglés** (discovery global); el copy de cara al usuario
-  final sigue en español neutro (audiencia LATAM).
+- **The contract rules.** A change in `/api/v1` propagates to `cli` and `mcp` by
+  regenerating their client from `openapi.json` (see the `contract-sync` agent).
+  A missing endpoint is requested upstream and tracked in
+  [`CONTRACT-GAPS.md`](CONTRACT-GAPS.md), never invented downstream.
+- **All open source, MIT licensed.** README + LICENSE + CHANGELOG in every piece.
+- **Everything open source is written in English** — docs, changelogs, agent
+  definitions, CLI help, MCP tool descriptions, commits and pull requests. The
+  one exception is the end-user event copy that `skills/freeticket-eventos`
+  *generates*, which stays in neutral Spanish for its LatAm audience.
+
+See [AGENTS.md](AGENTS.md) for how agents should work in this repo.

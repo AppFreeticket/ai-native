@@ -1,158 +1,159 @@
-# Roadmap AI-first — ai-native
+# AI-first roadmap — ai-native
 
-Documento de ejecución y trazabilidad, de inicio a fin, para convertir FreeTicket
-en plataforma AI-first: **MCP con cobertura total del contrato (B2B + admin + B2C)**,
-accesible desde **claude.ai en el navegador** (HTTP remoto + OAuth), con
-**MCP Apps** para interacción visual, distribución como **plugin portable
-([Agent Plugins 1.0.0](https://agent-plugins.org))**, y una sesión B2B que vale
-en **todos los workspaces del usuario con el permiso real de cada uno**.
+An execution and traceability document, start to finish, for turning FreeTicket
+into an AI-first platform: **an MCP with full coverage of the contract (B2B +
+admin + B2C)**, reachable from **claude.ai in the browser** (remote HTTP +
+OAuth), with **MCP Apps** for visual interaction, distributed as a **portable
+plugin ([Agent Plugins 1.0.0](https://agent-plugins.org))**, and a B2B session
+that holds **across every workspace the user belongs to, with the real
+permission they have in each**.
 
-**Cómo se traza:** cada tarea es un checkbox. Se marca en el mismo PR que la
-completa. La tabla de hitos (abajo) refleja el estado agregado. Los huecos de
-contrato se registran en [CONTRACT-GAPS.md](CONTRACT-GAPS.md) — nunca se
-inventan en el cliente (regla de oro).
+**How it is traced:** every task is a checkbox, ticked in the same pull request
+that completes it. The milestone table below reflects the aggregate state.
+Contract holes are recorded in [CONTRACT-GAPS.md](CONTRACT-GAPS.md) — never
+invented in a client (the golden rule).
 
 ---
 
-## Tabla de hitos
+## Milestones
 
-| # | Hito | Versión mcp | Estado | Depende de |
+| # | Milestone | mcp version | Status | Depends on |
 |---|---|---|---|---|
-| 0 | Fundaciones (codegen, submódulo, auth compartida) | 0.3.0 | ✅ jul 2026 | — |
-| 1 | Ola A — reads B2B (27 tools) | 0.3.0 | ✅ jul 2026 | — |
-| 2 | Ola B — writes B2B (29/29 tools; el hueco de contrato cerró en 1.5.0) | 0.4.0 | ✅ jul 2026 | nada |
-| 3 | Ola C — admin completo (15 tools) | 0.5.0 | ✅ jul 2026 | nada |
-| 4 | HTTP remoto + OAuth → claude.ai navegador | 0.6.0–0.7.0 | ✅ AS embebido en el mcp (0.10.0) | — |
-| 5 | UI en el host — MCP Apps, no `mcp-ui` | 0.12.0 | ✅ ago 2026 | hito 2 (writes) |
-| 6 | Plugin portable (estándar Agent Plugins 1.0.0) + marketplace | — (plugin 0.1.1) | ✅ instalable, PR #13 sin mergear | hitos 2–3 |
-| 7 | Contrato B2C shipped en free-admin (catálogo + checkout + post-venta) | — | ✅ jul 2026 | — |
-| 8 | Tools `public_*` + vista | 0.9.0 / 0.12.0 | ✅ ago 2026 | hitos 4 y 7 |
-| 9 | Skill `freeticket-comprar` + GA 1.0.0 | 1.0.0 | ⬜ | hito 8 |
-| 10 | Permisos por workspace (sesión B2B multi-workspace con el rol real de cada uno) | 0.14.0 | ✅ contrato 1.7.0 (queda el rol en el consent) | free-admin #403 ✅ |
-| 11 | Publicar `@freeticket/mcp` en npm (hoy no existe en el registry) | 0.14.0 | ⬜ falta `npm login` | — |
-| 12 | Paridad con el sitio: área de socios, contenido y comprobantes por contrato | 0.14.0 | ✅ sep 2026 | free-admin #355 #356 #381 #383 |
+| 0 | Foundations (codegen, submodule, shared auth) | 0.3.0 | ✅ Jul 2026 | — |
+| 1 | Wave A — B2B reads (27 tools) | 0.3.0 | ✅ Jul 2026 | — |
+| 2 | Wave B — B2B writes (29/29 tools; the contract hole closed in 1.5.0) | 0.4.0 | ✅ Jul 2026 | nothing |
+| 3 | Wave C — full admin (15 tools) | 0.5.0 | ✅ Jul 2026 | nothing |
+| 4 | Remote HTTP + OAuth → claude.ai in the browser | 0.6.0–0.7.0 | ✅ AS embedded in the mcp (0.10.0) | — |
+| 5 | UI in the host — MCP Apps, not `mcp-ui` | 0.12.0 | ✅ Aug 2026 | milestone 2 (writes) |
+| 6 | Portable plugin (Agent Plugins 1.0.0) + marketplace | — (plugin 0.2.0) | ✅ installable | milestones 2–3 |
+| 7 | B2C contract shipped in free-admin (catalogue + checkout + post-sale) | — | ✅ Jul 2026 | — |
+| 8 | `public_*` tools + view | 0.9.0 / 0.12.0 | ✅ Aug 2026 | milestones 4 and 7 |
+| 9 | `freeticket-comprar` skill + GA 1.0.0 | 1.0.0 | ⬜ | milestone 8 |
+| 10 | Per-workspace permissions (a multi-workspace B2B session carrying the real role in each) | 0.14.0 | ✅ contract 1.7.0 (the role in the consent page is still open) | free-admin #403 ✅ |
+| 11 | Publish `@freeticket/mcp` on npm (it does not exist in the registry today) | 0.14.0 | ⬜ `npm login` missing | — |
+| 12 | Parity with the website: members area, content and receipts through the contract | 0.14.0 | ✅ Sep 2026 | free-admin #355 #356 #381 #383 |
 
-Estados: ✅ hecho · 🔶 en curso · ⬜ pendiente.
+Statuses: ✅ done · 🔶 in progress · ⬜ pending.
 
 ---
 
-## Hito 0 — Fundaciones ✅ (jul 2026)
+## Milestone 0 — Foundations ✅ (Jul 2026)
 
-- [x] Codegen real desde los dos specs (`pnpm generate` → `src/client/`, `src/admin-client/`)
-- [x] Estructura `src/tools/b2b.ts` + `src/tools/admin.ts`, un tool = un operationId
-- [x] Auth compartida con el CLI: env > `~/.freeticket/config.json` (`ft login` autentica el MCP)
-- [x] Tools `admin_*` gateados por `FT_ADMIN_SESSION`
-- [x] `mcp/` convertido en submódulo (`AppFreeticket/freeticket-mcp`, público)
-- [x] Metadata publicable (repository, bugs, license MIT) + tests de registro (vitest)
+- [x] Real codegen from both specs (`pnpm generate` → `src/client/`, `src/admin-client/`)
+- [x] `src/tools/b2b.ts` + `src/tools/admin.ts` structure, one tool = one operationId
+- [x] Auth shared with the CLI: env > `~/.freeticket/config.json` (`ft login` authenticates the MCP too)
+- [x] `admin_*` tools gated behind `FT_ADMIN_SESSION`
+- [x] `mcp/` turned into a submodule (`AppFreeticket/freeticket-mcp`, public)
+- [x] Publishable metadata (repository, bugs, MIT license) + registration tests (vitest)
 
-## Hito 1 — Ola A: reads B2B ✅ (v0.3.0)
+## Milestone 1 — Wave A: B2B reads ✅ (v0.3.0)
 
-27/27 reads del contrato `/api/v1`:
+All 27 reads of the `/api/v1` contract:
 
-- [x] Sesión: `whoami`
-- [x] Eventos: `events_list` · `events_get` · `event_dates_list`
+- [x] Session: `whoami`
+- [x] Events: `events_list` · `events_get` · `event_dates_list`
 - [x] Tickets: `ticket_types_list` · `ticket_types_get` · `tickets_access`
-- [x] Ventas: `sales_list` · `sales_get` · `sales_tickets`
-- [x] Membresías: `plans_list` · `plans_get` · `plans_subscribers`
-- [x] Comercial: `discounts_list` · `webhooks_list` · `venues_list` · `venues_get` · `staff_list`
-- [x] Reportes: `reports_summary` · `reports_by_event` · `reports_timeseries` · `reports_inventory` · `reconciliation`
+- [x] Sales: `sales_list` · `sales_get` · `sales_tickets`
+- [x] Memberships: `plans_list` · `plans_get` · `plans_subscribers`
+- [x] Commercial: `discounts_list` · `webhooks_list` · `venues_list` · `venues_get` · `staff_list`
+- [x] Reports: `reports_summary` · `reports_by_event` · `reports_timeseries` · `reports_inventory` · `reconciliation`
 - [x] Exports: `reports_export_buyers` · `reports_export_attendees` · `reports_export_subscribers` · `reports_export_reconciliation`
 
-## Hito 2 — Ola B: writes B2B (v0.4.0)
+## Milestone 2 — Wave B: B2B writes (v0.4.0)
 
-Objetivo: **todo lo que hace `ft` se puede hacer por tools**. 29 tools nuevos,
-generados del SDK igual que los reads. Sin dependencias de backend: el contrato
-ya expone las 29 operaciones.
+Goal: **everything `ft` can do can be done through tools.** 29 new tools,
+generated from the SDK just like the reads. No backend dependency: the contract
+already exposes all 29 operations.
 
-Preparación:
+Preparation:
 
-- [x] Correr `contract-sync` (spec fresco antes de empezar)
-- [x] Helper de registro para writes: `annotations` MCP (`destructiveHint`,
-      `idempotentHint`) + descripción que exige confirmación humana explícita
-      en deletes/refunds/cancels
+- [x] Run `contract-sync` (a fresh spec before starting)
+- [x] Registration helper for writes: MCP `annotations` (`destructiveHint`,
+      `idempotentHint`) plus a description demanding explicit human confirmation
+      on deletes, refunds and cancels
 
-Eventos (7):
+Events (7):
 
 - [x] `events_create` — `POST /events`
 - [x] `events_update` — `PATCH /events/{id}`
-- [x] `events_delete` — `DELETE /events/{id}` ⚠️ destructivo
+- [x] `events_delete` — `DELETE /events/{id}` ⚠️ destructive
 - [x] `events_publish` — `POST /events/{id}/publish`
-- [ ] `event_dates_create` — `POST /events/{id}/dates`  ← hueco de contrato (sin `requestBody`), ver CONTRACT-GAPS.md
-- [ ] `event_dates_update` — `PATCH /events/{id}/dates/{dateId}`  ← hueco de contrato (sin `requestBody`), ver CONTRACT-GAPS.md
-- [x] `event_dates_delete` — `DELETE /events/{id}/dates/{dateId}` ⚠️ destructivo
+- [x] `event_dates_create` — `POST /events/{id}/dates` (unblocked by contract 1.5.0)
+- [x] `event_dates_update` — `PATCH /events/{id}/dates/{dateId}` (unblocked by contract 1.5.0)
+- [x] `event_dates_delete` — `DELETE /events/{id}/dates/{dateId}` ⚠️ destructive
 
 Ticket types (3):
 
 - [x] `ticket_types_create` — `POST /ticket-types`
-- [ ] `ticket_types_update` — `PATCH /ticket-types/{id}`  ← hueco de contrato (sin `requestBody`), ver CONTRACT-GAPS.md
-- [x] `ticket_types_delete` — `DELETE /ticket-types/{id}` ⚠️ destructivo
+- [x] `ticket_types_update` — `PATCH /ticket-types/{id}` (unblocked by contract 1.5.0)
+- [x] `ticket_types_delete` — `DELETE /ticket-types/{id}` ⚠️ destructive
 
-Ventas y tickets (5):
+Sales and tickets (5):
 
-- [x] `sales_create` — `POST /sales` (comps / venta programática)
-- [x] `sales_cancel` — `POST /sales/{id}/cancel` ⚠️ destructivo
-- [x] `sales_refund` — `POST /sales/{id}/refund` ⚠️ destructivo
+- [x] `sales_create` — `POST /sales` (comps / programmatic sales)
+- [x] `sales_cancel` — `POST /sales/{id}/cancel` ⚠️ destructive
+- [x] `sales_refund` — `POST /sales/{id}/refund` ⚠️ destructive
 - [x] `tickets_checkin` — `POST /tickets/{ticketCode}/checkin`
 - [x] `tickets_resend` — `POST /tickets/{ticketCode}/resend`
 
-Membresías (4):
+Memberships (4):
 
 - [x] `plans_create` — `POST /membership-plans`
-- [ ] `plans_update` — `PATCH /membership-plans/{id}`  ← hueco de contrato (sin `requestBody`), ver CONTRACT-GAPS.md
-- [x] `plans_delete` — `DELETE /membership-plans/{id}` ⚠️ destructivo
-- [x] `subscriptions_cancel` — `POST /subscriptions/{id}/cancel` ⚠️ destructivo
+- [x] `plans_update` — `PATCH /membership-plans/{id}` (unblocked by contract 1.5.0)
+- [x] `plans_delete` — `DELETE /membership-plans/{id}` ⚠️ destructive
+- [x] `subscriptions_cancel` — `POST /subscriptions/{id}/cancel` ⚠️ destructive
 
-Venues y staff (5):
+Venues and staff (5):
 
 - [x] `venues_create` — `POST /venues`
-- [ ] `venues_update` — `PATCH /venues/{id}`  ← hueco de contrato (sin `requestBody`), ver CONTRACT-GAPS.md
-- [x] `venues_delete` — `DELETE /venues/{id}` ⚠️ destructivo
+- [x] `venues_update` — `PATCH /venues/{id}` (unblocked by contract 1.5.0)
+- [x] `venues_delete` — `DELETE /venues/{id}` ⚠️ destructive
 - [x] `staff_create` — `POST /staff`
 - [x] `staff_update_role` — `PATCH /staff/{id}/role`
 
-Comercial (5):
+Commercial (5):
 
 - [x] `discounts_create` — `POST /discounts`
 - [x] `discounts_update` — `PATCH /discounts/{id}`
-- [x] `discounts_delete` — `DELETE /discounts/{id}` ⚠️ destructivo
+- [x] `discounts_delete` — `DELETE /discounts/{id}` ⚠️ destructive
 - [x] `webhooks_create` — `POST /webhooks`
-- [x] `webhooks_delete` — `DELETE /webhooks/{id}` ⚠️ destructivo
+- [x] `webhooks_delete` — `DELETE /webhooks/{id}` ⚠️ destructive
 
-Fuera de alcance: `POST /auth/device/{code,token}` — es auth del cliente
-(la consume `ft login`), no un tool.
+Out of scope: `POST /auth/device/{code,token}` — that is client auth (consumed
+by `ft login`), not a tool.
 
-Cierre del hito:
+Closing the milestone:
 
-- [x] Tests de registro para los 29 tools (patrón de `b2b.test.ts`)
-- [x] README del mcp: tabla de tools actualizada
-- [x] `oss-maintainer` (CHANGELOG, semver) → publicar **0.4.0**
+- [x] Registration tests for all 29 tools (the `b2b.test.ts` pattern)
+- [x] mcp README: tool table updated
+- [x] `oss-maintainer` (CHANGELOG, semver) → publish **0.4.0**
 
-**Criterio de salida:** crear un evento con fecha y ticket type, publicarlo,
-emitir una comp y hacerle checkin — todo por tools MCP, cero `ft`.
+**Exit criterion:** create an event with a date and a ticket type, publish it,
+issue a comp and check it in — entirely through MCP tools, zero `ft`.
 
-## Hito 3 — Ola C: admin completo (v0.5.0)
+## Milestone 3 — Wave C: full admin (v0.5.0)
 
-15 tools para las ops restantes de `/api/admin`. Todos gateados por
-`FT_ADMIN_SESSION` (igual que los 4 existentes).
+15 tools for the remaining `/api/admin` operations. All gated behind
+`FT_ADMIN_SESSION` (like the 4 that already existed).
 
-- [x] Correr `contract-sync` (spec admin fresco)
+- [x] Run `contract-sync` (a fresh admin spec)
 
 Workspaces (5):
 
 - [x] `admin_workspaces_get` — `GET /workspaces/{id}`
 - [x] `admin_workspaces_create` — `POST /workspaces`
 - [x] `admin_workspaces_update` — `PATCH /workspaces/{id}`
-- [x] `admin_workspaces_suspend` — `POST /workspaces/{id}/suspend` ⚠️ destructivo
+- [x] `admin_workspaces_suspend` — `POST /workspaces/{id}/suspend` ⚠️ destructive
 - [x] `admin_workspaces_restore` — `POST /workspaces/{id}/restore`
 
-Users e impersonation (4):
+Users and impersonation (4):
 
 - [x] `admin_users_get` — `GET /users/{id}`
 - [x] `admin_users_update` — `PATCH /users/{id}`
-- [x] `admin_impersonate` — `POST /impersonate` ⚠️ sensible
+- [x] `admin_impersonate` — `POST /impersonate` ⚠️ sensitive
 - [x] `admin_impersonate_stop` — `POST /impersonate/stop`
 
-Platform plans y flags (6):
+Platform plans and flags (6):
 
 - [x] `admin_platform_plans_list` — `GET /platform-plans`
 - [x] `admin_platform_plans_get` — `GET /platform-plans/{id}`
@@ -161,309 +162,318 @@ Platform plans y flags (6):
 - [x] `admin_feature_flags_list` — `GET /feature-flags`
 - [x] `admin_feature_flags_set` — `PUT /feature-flags/{key}`
 
-Cierre:
+Closing:
 
-- [x] Tests + README + CHANGELOG → publicar **0.5.0**
-- [ ] (Backend, no bloqueante) free-admin #157: service token PAT para
-      SUPER_ADMIN → migrar de cookie a Bearer cuando shipee
+- [x] Tests + README + CHANGELOG → publish **0.5.0**
+- [ ] (Backend, not blocking) free-admin #157: a PAT service token for
+      SUPER_ADMIN → migrate from cookie to Bearer once it ships
 
-**Criterio de salida:** paridad total con `ft admin`; suspender y restaurar un
-workspace de prueba por tools.
+**Exit criterion:** full parity with `ft admin`; suspend and restore a test
+workspace through tools.
 
-## Hito 4 — HTTP remoto: MCP en claude.ai del navegador (v0.6.0–0.7.0)
+## Milestone 4 — Remote HTTP: the MCP inside claude.ai in the browser (v0.6.0–0.7.0)
 
-Objetivo: agregar FreeTicket como **custom connector en claude.ai**
-(Settings → Connectors → Add custom connector) sin instalar nada local.
+Goal: add FreeTicket as a **custom connector in claude.ai** (Settings →
+Connectors → Add custom connector) with nothing installed locally.
 
-Transporte (0.6.0):
+Transport (0.6.0):
 
-- [x] Transporte dual: mantener stdio y sumar **Streamable HTTP**
-      (`StreamableHTTPServerTransport` del SDK); factoría común de server
-      (`src/server.ts` `buildServer`) para ambos entrypoints
-- [x] Deploy en Vercel (`mcp.appfreeticket.com/mcp`) con `mcp-handler` /
-      route handler — vivo (metadata RFC 8414 responde 200)
-- [x] Server remoto **stateless**: credenciales solo del request (clients
-      aislados por sesión), nunca lee `~/.freeticket/config.json`
-- [x] Interim de prueba: Bearer `FT_API_KEY` por header (sirve para Claude Code
-      remoto y curl; claude.ai requiere OAuth) — verificado E2E (`tools/list`
-      devuelve 51 B2B, 70 con `X-Admin-Session`)
-- [ ] Rate limit por workspace en el edge
+- [x] Dual transport: keep stdio and add **Streamable HTTP**
+      (the SDK's `StreamableHTTPServerTransport`); a shared server factory
+      (`src/server.ts`, `buildServer`) for both entrypoints
+- [x] Deployed on Vercel (`mcp.appfreeticket.com/mcp`) with `mcp-handler` /
+      a route handler — live (RFC 8414 metadata answers 200)
+- [x] The remote server is **stateless**: credentials come only from the request
+      (clients isolated per session), it never reads `~/.freeticket/config.json`
+- [x] Test interim: a Bearer `FT_API_KEY` header (good enough for remote Claude
+      Code and curl; claude.ai requires OAuth) — verified end to end
+      (`tools/list` returns 51 B2B, 70 with `X-Admin-Session`)
+- [ ] Per-workspace rate limiting at the edge
 
-OAuth 2.1 (0.7.0) — claude.ai lo exige para connectors con credenciales:
+OAuth 2.1 (0.7.0) — claude.ai requires it for connectors that hold credentials:
 
-- [x] Resource-server side en el mcp: `WWW-Authenticate` + protected resource
-      metadata (RFC 9728) en `/.well-known/oauth-protected-resource`
-- [x] Authorization server — resuelto **embebiéndolo en el propio mcp** (0.10.0)
-      en vez de pedirlo en free-admin: tokens stateless que sellan API key +
-      workspace + sesión admin. `FT_OAUTH_ISSUER` permite delegar a un AS de
-      free-admin si algún día existe. Ver fila `shipped` en CONTRACT-GAPS.md
-- [x] Validar el token OAuth en el mcp (además del Bearer API key)
-- [x] Página de consentimiento servida por el mcp, con login por device flow
-      contra la sesión de free-admin (0.11.0)
+- [x] Resource-server side in the mcp: `WWW-Authenticate` + protected resource
+      metadata (RFC 9728) at `/.well-known/oauth-protected-resource`
+- [x] Authorization server — solved by **embedding it in the mcp itself**
+      (0.10.0) instead of requesting it in free-admin: stateless tokens sealing
+      the API key, workspace and admin session. `FT_OAUTH_ISSUER` allows
+      delegating to a free-admin AS if one ever exists. See the `shipped` row in
+      CONTRACT-GAPS.md
+- [x] Validate the OAuth token in the mcp (alongside the Bearer API key)
+- [x] Consent page served by the mcp, with device-flow login against the
+      free-admin session (0.11.0)
 
-Cierre:
+Closing:
 
-- [ ] Smoke E2E: desde claude.ai web, agregar connector → autorizar → `whoami`,
-      `events_list` y un write con confirmación
-- [x] Docs: sección "Uso remoto por URL (HTTP)" en README del mcp
-- [x] Publicar **0.6.0** (HTTP) — pendiente **0.7.0** (OAuth, tras el AS)
+- [ ] E2E smoke test: from claude.ai on the web, add the connector → authorize →
+      `whoami`, `events_list` and one write with confirmation
+- [x] Docs: a "Remote use over URL (HTTP)" section in the mcp README
+- [x] Publish **0.6.0** (HTTP) — **0.7.0** (OAuth, after the AS) still pending
 
-**Criterio de salida:** un usuario sin terminal opera su workspace desde el
-chat del navegador.
+**Exit criterion:** a user with no terminal operates their workspace from the
+browser chat.
 
-## Hito 5 — UI en el host ✅ (v0.12.0, ago 2026)
+## Milestone 5 — UI in the host ✅ (v0.12.0, Aug 2026)
 
-Objetivo cumplido, **por otro camino que el planeado**: en vez de `@mcp-ui/server`
-(librería de terceros) se implementó la extensión oficial
-**`io.modelcontextprotocol/ui`** (MCP Apps, spec `2026-01-26`) a mano, sin
-dependencia nueva. El dialecto JSON-RPC son ~40 líneas; traer un bundler y un
-paso de build para eso no se pagaba, y la extensión oficial es la que entiende
-claude.ai. El agente razona con el JSON; el humano ve la vista.
+Goal met, **by a different route than planned**: instead of `@mcp-ui/server` (a
+third-party library) we implemented the official
+**`io.modelcontextprotocol/ui`** extension (MCP Apps, spec `2026-01-26`) by
+hand, with no new dependency. The JSON-RPC dialect is about 40 lines; pulling in
+a bundler and a build step for that did not pay off, and the official extension
+is the one claude.ai understands. The agent reasons over the JSON; the human
+sees the view.
 
-Infraestructura:
+Infrastructure:
 
-- [x] Recurso `ui://freeticket/view.html` (`text/html;profile=mcp-app`), servido
-      desde el bundle — sin lecturas de disco, así funciona igual en stdio y en
-      la Vercel Function
-- [x] Helper `uiTool()` que adjunta `_meta.ui.resourceUri` sin tocar el payload;
-      el resultado viaja también en `structuredContent`
-- [x] Fallback: los hosts sin la extensión ignoran `_meta` y ven el mismo texto
+- [x] A `ui://freeticket/view.html` resource (`text/html;profile=mcp-app`),
+      served from the bundle — no disk reads, so it behaves identically over
+      stdio and in the Vercel Function
+- [x] A `uiTool()` helper that attaches `_meta.ui.resourceUri` without touching
+      the payload; the result also travels in `structuredContent`
+- [x] Fallback: hosts without the extension ignore `_meta` and see the same text
 
-Un solo view en vez de una plantilla por tool: el render se decide por la forma
-del payload (**array → tabla**, **objeto → tiles de KPI**), así no hay N
-plantillas que mantener contra un contrato que cambia.
+One single view instead of a template per tool: the render is chosen by the
+shape of the payload (**array → table**, **object → KPI tiles**), so there are
+no N templates to maintain against a contract that keeps moving.
 
-- [x] 25 tools con vista: todos los listados y todos los reportes
-- [x] Marca garantizada: logo y acento de FreeTicket no sobreescribibles por el
-      host; del host se adoptan solo `--color-*` / `--font-*`
-- [x] `data-theme` + `color-scheme`, moneda en el `locale` del host,
-      `event.source` validado, `ui/resource-teardown` respondido
+- [x] 25 tools with a view: every list and every report
+- [x] Guaranteed branding: the FreeTicket logo and accent cannot be overridden by
+      the host; only `--color-*` / `--font-*` are adopted from it
+- [x] `data-theme` + `color-scheme`, currency in the host's locale, validated
+      `event.source`, `ui/resource-teardown` answered
 
-Cierre:
+Closing:
 
-- [x] Tests reales del view en jsdom (tabla, tiles, error, escape de payloads,
-      invariantes de marca) + guarda que falla si un listado nuevo no tiene vista
-- [x] README con el detalle → publicado **0.12.0**
+- [x] Real jsdom tests of the view (table, tiles, error, payload escaping, brand
+      invariants) plus a guard that fails when a new list has no view
+- [x] README with the detail → published **0.12.0**
 
-Quedó fuera a propósito: preview de confirmación en los writes destructivos y
-resultado visual del check-in. La confirmación ya la pide el host por
-`destructiveHint`; duplicarla en una vista es UI que hay que mantener para
-repetir algo que ya pasa.
+Deliberately left out: a confirmation preview on destructive writes, and a
+visual check-in result. The host already asks for the confirmation through
+`destructiveHint`; duplicating it in a view is UI to maintain in order to repeat
+something that already happens.
 
-## Hito 6 — Plugin portable: estándar Agent Plugins 1.0.0 (fin del drift de skills)
+## Milestone 6 — Portable plugin: the Agent Plugins 1.0.0 standard (end of skill drift)
 
-Objetivo: una instalación versionada que empaqueta skills + MCP. Reemplaza
-`npx skills add` (copia one-shot → drift) como canal de distribución.
+Goal: a versioned installation that packages skills plus the MCP. It replaces
+`npx skills add` (a one-shot copy → drift) as the distribution channel.
 
-**Cambio de plan (ago 2026):** en vez de un formato propio de Claude Code
-(`.claude-plugin/`), se adopta [**Agent Plugins 1.0.0**](https://agent-plugins.org)
-— estándar abierto y vendor-neutral (Vercel, VS Code, GitHub CLI lo implementan)
-con el mismo contenido: `plugin.json` + `skills/` + `mcp.json`. Un solo paquete
-sirve a todos los clientes compatibles en vez de uno por host.
+**Change of plan (Aug 2026):** instead of a Claude Code-specific format
+(`.claude-plugin/`), we adopted [**Agent Plugins 1.0.0**](https://agent-plugins.org)
+— an open, vendor-neutral standard (Vercel, VS Code and the GitHub CLI implement
+it) carrying the same content: `plugin.json` + `skills/` + `mcp.json`. One
+package serves every compatible client instead of one package per host.
 
-**Y no hace falta repo nuevo:** `AppFreeticket/agent-skills` ya tiene el layout
-exacto que pide el spec (`skills/<name>/SKILL.md` en la raíz). Se le agregan dos
-manifests y ese repo *es* el plugin. Crear `freeticket-plugin` para duplicar
-tres skills era mover archivos para nada.
+**And it needed no new repo:** `AppFreeticket/agent-skills` already had the exact
+layout the spec asks for (`skills/<name>/SKILL.md` at the root). Two manifests
+were added and that repo *is* the plugin. Creating `freeticket-plugin` to
+duplicate three skills would have been moving files for nothing.
 
-- [x] `plugin.json` + `mcp.json` en `agent-skills` (Agent Plugins 1.0.0,
-      `name: freeticket`), validados contra los schemas oficiales
-- [x] `.claude-plugin/plugin.json` — Claude Code todavía **no** lee el layout del
-      estándar (espera el manifest en `.claude-plugin/`). Los dos manifests
-      declaran el mismo server con distinto nombre de transporte
-      (`streamable-http` en el estándar, `http` en Claude Code): la duplicación
-      es esa divergencia de formatos, no dos configuraciones.
-- [x] `.claude-plugin/marketplace.json` **en el mismo repo** — un repo de
-      marketplace aparte para listar un solo plugin no se paga
-- [x] README de `agent-skills`: instalación como plugin además de `npx skills`
-- [x] Instalación E2E verificada (no solo `plugin validate`): marketplace add →
-      install → las 3 skills en el cache y el server en `claude mcp list`
-- [ ] Release pipeline (`ft-devops-ci`): tag en cli/mcp/skills → bump del
-      `version` en **los dos** `plugin.json`. No es cosmético: el string de
-      versión es la señal de update del cache — sin bump, `plugin update` deja
-      al usuario en la copia vieja (verificado).
-- [ ] Merge de [agent-skills#13](https://github.com/AppFreeticket/agent-skills/pull/13)
-      → `/plugin marketplace add AppFreeticket/agent-skills` sin `@ref`
+- [x] `plugin.json` + `mcp.json` in `agent-skills` (Agent Plugins 1.0.0,
+      `name: freeticket`), validated against the official schemas
+- [x] `.claude-plugin/plugin.json` — Claude Code does **not** yet read the
+      standard's layout (it expects the manifest under `.claude-plugin/`). Both
+      manifests declare the same server under a different transport name
+      (`streamable-http` in the standard, `http` in Claude Code): the
+      duplication is that format divergence, not two configurations.
+- [x] `.claude-plugin/marketplace.json` **in the same repo** — a separate
+      marketplace repo to list a single plugin does not pay for itself
+- [x] `agent-skills` README: installation as a plugin alongside `npx skills`
+- [x] E2E installation verified (not just `plugin validate`): marketplace add →
+      install → all 3 skills in the cache and the server in `claude mcp list`
+- [x] `scripts/validate-plugin.mjs` + CI: validates the repo against the Agent
+      Plugins 1.0.0 specification on every push and pull request
+- [ ] Release pipeline (`ft-devops-ci`): a tag in cli/mcp/skills → bump the
+      `version` in **both** `plugin.json` files. Not cosmetic: the version
+      string is the cache's update signal — without a bump, `plugin update`
+      leaves the user on the old copy (verified).
 
-Transporte: el plugin declara el **server remoto** `mcp.appfreeticket.com/mcp`
-(OAuth en el browser al primer uso). El stdio `npx -y @freeticket/mcp` que se
-había puesto primero **no funciona: el paquete no está publicado en npm** — el
-plugin registraba el server y moría con "Connection closed". Ver hito 11.
+Transport: the plugin declares the **remote server** `mcp.appfreeticket.com/mcp`
+(OAuth in the browser on first use). The `npx -y @freeticket/mcp` stdio entry
+that was configured first **does not work: the package is not published on
+npm** — the plugin registered the server and died with "Connection closed". See
+milestone 11.
 
-Fuera de alcance: `extensions` con namespace de cliente. Hoy no hay nada que
-configurar por host; el día que lo haya, es una clave más en `plugin.json`.
+Out of scope: `extensions` with a client namespace. There is nothing to
+configure per host today; the day there is, it is one more key in `plugin.json`.
 
-## Hito 11 — Publicar `@freeticket/mcp` en npm
+## Milestone 11 — Publish `@freeticket/mcp` on npm
 
-`@freeticket/cli` está publicado (0.8.0); `@freeticket/mcp` **nunca se publicó**,
-aunque el skill `freeticket-mcp`, el README del mcp y el roadmap lo dan por
-hecho. Sin eso no existe el camino stdio local: ni `npx -y @freeticket/mcp`, ni
-Claude Desktop, ni Cursor sin connector remoto.
+`@freeticket/cli` is published (0.9.0); `@freeticket/mcp` has **never been
+published**, even though the `freeticket-mcp` skill, the mcp README and this
+roadmap all assume it has. Without it there is no local stdio path: no
+`npx -y @freeticket/mcp`, no Claude Desktop, no Cursor without a remote connector.
 
-- [ ] `npm login` (falta auth: `npm whoami` da 401) y publicar `@freeticket/mcp`
-      0.14.0 con `--access public`
-- [ ] Verificar `npx -y @freeticket/mcp` contra el server real
-- [ ] Quitar el aviso "no está en npm" del skill `freeticket-mcp`
-- [ ] Decidir el transporte del plugin: seguir en remoto (cero instalación) o
-      sumar el stdio como segundo server. Dos servers = tools duplicados en el
-      host, así que probablemente sea remoto por defecto y stdio documentado.
-- [ ] Publicar el server en directorios MCP (va con el hito 9)
+- [ ] `npm login` (auth missing: `npm whoami` returns 401) and publish
+      `@freeticket/mcp` with `--access public`
+- [ ] Verify `npx -y @freeticket/mcp` against the real server
+- [ ] Drop the "not on npm" warning from the `freeticket-mcp` skill
+- [ ] Decide the plugin's transport: stay remote (zero installation) or add
+      stdio as a second server. Two servers means duplicated tools in the host,
+      so it will probably be remote by default with stdio documented.
+- [ ] Publish the server in MCP directories (ships with milestone 9)
 
-## Hito 12 — Paridad con el sitio ✅ (v0.14.0, sep 2026)
+## Milestone 12 — Parity with the website ✅ (v0.14.0, Sep 2026)
 
-free-admin cerró seis brechas del ledger de una tanda (contratos **1.7.0** /
-**1.3.0** / **0.4.0**) y los clientes estaban parados en 1.5.0: 15 operaciones
-B2B y 1 de superadmin sin cliente. El principio es el de siempre — el contrato
-manda, el cliente sigue — y acá el cliente venía atrasado, que es la otra forma
-de romperlo.
+free-admin closed six ledger gaps in one batch (contracts **1.7.0** / **1.3.0** /
+**0.4.0**) while the clients were still standing on 1.5.0: 15 B2B operations and
+1 superadmin operation with no client. The principle is the usual one — the
+contract leads, the client follows — and here the client had fallen behind,
+which is the other way to break it.
 
-- [x] `sync-openapi` ×3 en `cli` y `mcp` + regeneración de los clientes
-- [x] **Área de socios** (#355): 10 tools `customer_*` — membresía, alta y baja
-      de suscripción, perfil editable, detalle y cancelación de la propia compra,
-      logout. Misma superficie que el área de socios del sitio
-- [x] **Contenido** (#356): `content_videos` · `content_posts` · `content_lives` ·
-      `content_live_get` + `content_playback_token` (30 min en vivo, 1 h video)
-- [x] **Comprobantes de liquidación** (#381): `settlements_document` /
-      `settlements_proof` y `ft settlements document <id>`. La API responde 302 a
-      storage privado: el cliente corta en la redirección y devuelve la URL
-      firmada (5 min) en vez de meter un PDF en el contexto del modelo
+- [x] `sync-openapi` ×3 in `cli` and `mcp` + client regeneration
+- [x] **Members area** (#355): 10 `customer_*` tools — membership, subscribing
+      and cancelling, an editable profile, detail and cancellation of one's own
+      purchase, logout. The same surface as the website's members area
+- [x] **Content** (#356): `content_videos` · `content_posts` · `content_lives` ·
+      `content_live_get` + `content_playback_token` (30 min live, 1 h video)
+- [x] **Settlement receipts** (#381): `settlements_document` /
+      `settlements_proof` and `ft settlements document <id>`. The API answers 302
+      to private storage: the client stops at the redirect and returns the signed
+      URL (5 min) instead of dropping a PDF into the model's context
 - [x] **Superadmin** (#383): `admin_workspaces_assign_plan` + `webTemplate` /
-      `customDomain` en el update; `ft admin workspaces plan`
-- [x] **Staff cross-workspace nativo** (#382): `workspaceIds` del contrato, una
-      llamada en vez del fan-out de N requests
-- [x] Filtros de `GET /events` (`status`, `withTotal`) — parte de #357, que sigue
-      abierto por el resto (fecha, venue, normalización transversal)
-- [x] `coverage.test.ts` verde contra los tres specs nuevos: 110 operaciones,
-      103 tools, 7 exclusiones deliberadas
-- [x] Skills y plugin al día (103 tools, comandos nuevos, plugin 0.2.0)
+      `customDomain` on the update; `ft admin workspaces plan`
+- [x] **Native cross-workspace staff** (#382): the contract's `workspaceIds`, one
+      call instead of a fan-out of N requests
+- [x] `GET /events` filters (`status`, `withTotal`) — part of #357, which stays
+      open for the rest (date, venue, cross-cutting normalization)
+- [x] `coverage.test.ts` green against all three new specs: 110 operations,
+      103 tools, 7 deliberate exclusions
+- [x] Skills and plugin up to date (103 tools, new commands, plugin 0.2.0)
 
-## Hito 10 — Permisos por workspace (v0.14.0)
+## Milestone 10 — Per-workspace permissions (v0.14.0)
 
-Objetivo: que una sesión B2B valga **en todos los workspaces del usuario con el
-permiso real que tiene en cada uno**. Hoy vale la mitad: el alcance
-multi-workspace ya funciona, los permisos no.
+Goal: a B2B session that holds **across every workspace the user belongs to,
+with the real permission they have in each**. Today it holds halfway: the
+multi-workspace scope works, the permissions do not.
 
-Diagnóstico (ago 2026, auditoría del flujo de login de punta a punta):
+Diagnosis (Aug 2026, an end-to-end audit of the login flow):
 
-- ✅ El device flow ya devuelve `workspaces[]` completo y `pickActiveOrg` acepta
-      cualquier workspace accesible por `X-Workspace-Id`. El alcance está.
-- ❌ `requireApiAuth` (`free-admin/src/lib/api/auth.ts`) devuelve `user.role` —
-      el rol **global**, idéntico en todos los workspaces.
-- ❌ `WorkspaceMember.role`, `AccessGrant` (secciones + `expires_at`) y la
-      elevación de `OrgMember` OWNER/ADMIN existen en la DB y los aplica **solo**
-      el dashboard (`elevateOrgAdmin`, `resolveSectionAccess`). La API v1 no.
-- ⚠️ Consecuencia: un usuario acotado desde `/dashboard/accesos` en el workspace B
-      conserva el límite en el panel y lo pierde con su propia API key de
-      `ft login`. Y el inverso: un OWNER elevado en el panel come 403 por API.
-- ❌ `GET /me` no dice permisos: `Workspace = {id, name, slug}`. El fan-out
-      `workspace: "all"` del mcp los descubre a fuerza de 403.
+- ✅ The device flow already returns the full `workspaces[]` and `pickActiveOrg`
+      accepts any workspace reachable through `X-Workspace-Id`. The scope is there.
+- ❌ `requireApiAuth` (`free-admin/src/lib/api/auth.ts`) returns `user.role` —
+      the **global** role, identical across every workspace.
+- ❌ `WorkspaceMember.role`, `AccessGrant` (sections + `expires_at`) and the
+      OWNER/ADMIN elevation of `OrgMember` exist in the database and are applied
+      **only** by the dashboard (`elevateOrgAdmin`, `resolveSectionAccess`). The
+      v1 API does not.
+- ⚠️ Consequence: a user restricted through `/dashboard/accesos` in workspace B
+      keeps the limit in the panel and loses it with their own `ft login` API
+      key. And the inverse: an OWNER elevated in the panel eats a 403 over the API.
+- ❌ `GET /me` says nothing about permissions: `Workspace = {id, name, slug}`.
+      The mcp's `workspace: "all"` fan-out discovers them by collecting 403s.
 
-Backend ✅ ([free-admin #403](https://github.com/AppFreeticket/free-admin/issues/403), contrato **1.7.0** — no 1.6.0):
+Backend ✅ ([free-admin #403](https://github.com/AppFreeticket/free-admin/issues/403), contract **1.7.0** — not 1.6.0):
 
-- [x] `GET /me` devuelve `WorkspaceAccess` por fila: `role` efectivo + `sections`
-      (`null` = sin acotar, `[]` = vencido o revocado). `Me.role` queda deprecado
-- [x] Rol efectivo por workspace dentro de `requireApiAuth`
-- [x] `AccessGrant` acotado y vencido cortan igual por API que por panel
+- [x] `GET /me` returns a per-row `WorkspaceAccess`: effective `role` + `sections`
+      (`null` = unrestricted, `[]` = expired or revoked). `Me.role` is deprecated
+- [x] Effective per-workspace role inside `requireApiAuth`
+- [x] A restricted or expired `AccessGrant` cuts over the API exactly as it does
+      in the panel
 
-Clientes (después del contrato, nunca antes — regla de oro):
+Clients (after the contract, never before — the golden rule):
 
-- [x] `contract-sync` → 1.7.0 propagado a `cli` y `mcp`
-- [x] `ft workspace list`: columnas `role` y `access`
-- [x] `whoami` del mcp: el rol por workspace viene en la respuesta del contrato
-- [x] Fan-out `workspace: "all"`: descarta los workspaces con `sections: []`
-      antes de disparar, en vez de coleccionar 403 en `errors[]`
-- [ ] `ft login`: si hay >1 workspace, listarlos con su rol. **Bloqueado**: el
-      `DeviceTokenResponse` sigue devolviendo `Workspace` (id/name/slug) sin rol;
-      hoy toma `workspaces[0]` en silencio (`cli/src/commands/auth.ts:143`)
-- [ ] Consent del mcp remoto: mostrar el rol junto a cada workspace elegible —
-      mismo bloqueo que el anterior (haría falta un `GET /me` extra con el token
-      recién acuñado)
+- [x] `contract-sync` → 1.7.0 propagated to `cli` and `mcp`
+- [x] `ft workspace list`: `role` and `access` columns
+- [x] The mcp's `whoami`: the per-workspace role comes in the contract's response
+- [x] `workspace: "all"` fan-out: discards workspaces with `sections: []` before
+      firing, instead of collecting 403s in `errors[]`
+- [ ] `ft login`: with more than one workspace, list them with their role.
+      **Blocked**: `DeviceTokenResponse` still returns `Workspace` (id/name/slug)
+      with no role; today it silently takes `workspaces[0]`
+      (`cli/src/commands/auth.ts:143`)
+- [ ] Remote mcp consent page: show the role next to each eligible workspace —
+      blocked by the same thing (it would need an extra `GET /me` with the
+      freshly minted token)
 
-**Criterio de salida:** un usuario con permisos distintos en dos workspaces hace
-`ft login` una vez, ve ambos con su rol, y una escritura que su rol no permite en
-el workspace B es rechazada por API **igual que la rechaza el panel**.
+**Exit criterion:** a user with different permissions in two workspaces runs
+`ft login` once, sees both with their role, and a write their role does not
+allow in workspace B is rejected by the API **exactly as the panel rejects it**.
 
-## Hito 7 — Contrato B2C shipped (free-admin) ✅ (jul 2026)
+## Milestone 7 — B2C contract shipped (free-admin) ✅ (Jul 2026)
 
-Tercer linaje semver: `/api/public/openapi.json` 0.3.0, sin auth. Implementado
-en `free-admin/src/app/api/public/` + `src/lib/public-api/`.
+A third semver lineage: `/api/public/openapi.json` 0.3.0, no auth. Implemented
+in `free-admin/src/app/api/public/` + `src/lib/public-api/`.
 
-- [x] `GET /public/events` (filtros `city`, `q`, `from`/`to`, `page`, `sort`;
-      reusa la query autoritativa del portal). Nota: `category` no existe como
-      campo en el modelo — se omitió en vez de inventarlo.
+- [x] `GET /public/events` (filters `city`, `q`, `from`/`to`, `page`, `sort`;
+      reuses the portal's authoritative query). Note: `category` does not exist
+      as a field in the model — it was omitted rather than invented.
 - [x] `GET /public/events/{slug}`
-- [x] `GET /public/events/{slug}/availability` (stock en vivo vía `getTicketAvailability`)
-- [x] `POST /public/orders` → venta PENDING + reserva (tx Serializable) +
-      `checkoutUrl` de Mercado Pago. Alcance acotado: admisión general (no
-      numerado / no members-only), un organizador por orden. **Idempotency-Key
-      por header: pendiente** (el builder OpenAPI no soporta header params aún y
-      no hay store de dedupe — ponytail, sin infra nueva).
-- [x] `GET /public/orders/{id}` (`pending|paid|expired|cancelled` + tickets al pagar)
-- [x] `POST /public/tickets/{code}/resend` (ya existía; rate-limited, email enmascarado)
-- [x] `contract-sync` (dump del spec → `mcp/public-openapi.json`) + filas
-      `shipped` en CONTRACT-GAPS.md
+- [x] `GET /public/events/{slug}/availability` (live stock via `getTicketAvailability`)
+- [x] `POST /public/orders` → a PENDING sale + reservation (Serializable
+      transaction) + a Mercado Pago `checkoutUrl`. Narrow scope: general
+      admission (not seated, not members-only), one organizer per order.
+      **Idempotency-Key header: pending** (the OpenAPI builder does not support
+      header params yet and there is no dedupe store — deliberately no new infra).
+- [x] `GET /public/orders/{id}` (`pending|paid|expired|cancelled` + tickets once paid)
+- [x] `POST /public/tickets/{code}/resend` (already existed; rate limited, address masked)
+- [x] `contract-sync` (spec dump → `mcp/public-openapi.json`) + `shipped` rows in
+      CONTRACT-GAPS.md
 
-⚠️ **Pendiente de QA antes de prod:** el checkout anónimo crea ventas + preferencias
-MP reales. Habilitar compra guest por API es además una decisión de producto (el
-checkout web exige cuenta con correo verificado). Falta test de integración con DB.
+⚠️ **Pending QA before production:** anonymous checkout creates real sales and
+real Mercado Pago preferences. Enabling guest purchase through the API is also a
+product decision (web checkout requires an account with a verified email). An
+integration test against the database is still missing.
 
-## Hito 8 — B2C en el MCP: tools `public_*` + mcp-ui (v0.9.0)
+## Milestone 8 — B2C in the MCP: `public_*` tools + view (v0.9.0)
 
-Objetivo: el agente de un comprador descubre eventos y completa una compra.
-El agente **nunca** toca datos de pago — el humano paga en el checkout de
-Mercado Pago (patrón agentic-commerce seguro).
+Goal: a buyer's agent discovers events and completes a purchase. The agent
+**never** touches payment data — the human pays in the Mercado Pago checkout
+(the safe agentic-commerce pattern).
 
-Tools (sin credenciales, viven en el mismo server remoto del hito 4):
+Tools (no credentials; they live in the same remote server from milestone 4):
 
-- [x] `public_events_list` — catálogo con filtros
-- [x] `public_events_get` — detalle por slug
-- [x] `public_events_availability` — fechas, tipos, precios, stock
-- [x] `public_orders_create` — crea orden → devuelve `checkout_url` (genera y
-      pasa `Idempotency-Key` automáticamente)
-- [x] `public_orders_get` — estado post-pago + tickets emitidos
-- [x] `public_tickets_resend` — reenvío al mail del comprador
+- [x] `public_events_list` — catalogue with filters
+- [x] `public_events_get` — detail by slug
+- [x] `public_events_availability` — dates, types, prices, stock
+- [x] `public_orders_create` — creates the order → returns `checkout_url`
+      (generates and passes an `Idempotency-Key` automatically)
+- [x] `public_orders_get` — post-payment status + issued tickets
+- [x] `public_tickets_resend` — resend to the buyer's address
 
-Vista B2C:
+B2C view:
 
-- [x] Catálogo (`public_events_list`) → tabla con el view compartido (v0.12.0)
-- [ ] Availability → selector de fecha + tipo. Requiere un view interactivo que
-      llame tools desde el iframe: es otra clase de trabajo, no el render del
-      hito 5. Va con el hito 9, donde la skill de compra define el flujo.
-- [ ] Orden → resumen con botón al `checkout_url`; estado con polling visual
+- [x] Catalogue (`public_events_list`) → a table using the shared view (v0.12.0)
+- [ ] Availability → a date and type picker. It needs an interactive view that
+      calls tools from the iframe: a different class of work than the milestone 5
+      render. It ships with milestone 9, where the purchase skill defines the flow.
+- [ ] Order → a summary with a button to the `checkout_url`; status with visual polling
 
-Cierre:
+Closing:
 
-- [x] Codegen del tercer spec (`openapi-ts.public.config.ts` → `src/public-client/`)
-- [x] Tests + README → publicar **0.9.0**
+- [x] Codegen for the third spec (`openapi-ts.public.config.ts` → `src/public-client/`)
+- [x] Tests + README → publish **0.9.0**
 
-**Criterio de salida:** desde claude.ai sin login, buscar un evento, armar la
-orden y recibir el link de pago; tras pagar, ver los tickets con `public_orders_get`.
+**Exit criterion:** from claude.ai with no login, find an event, build the order
+and receive the payment link; after paying, see the tickets via `public_orders_get`.
 
-## Hito 9 — Skill `freeticket-comprar` + GA (v1.0.0)
+## Milestone 9 — `freeticket-comprar` skill + GA (v1.0.0)
 
-- [ ] Skill `freeticket-comprar` en `skills/` (español neutro, sin voseo):
-      flujo descubrir → disponibilidad → orden → checkout humano → confirmar
-      tickets; prohíbe pedir datos de pago
-- [ ] Sumarla al plugin (hito 6) y bump del plugin
-- [ ] Publicar el server remoto en directorios MCP (registry oficial, etc.)
-- [ ] Auditoría final `oss-maintainer` en las tres piezas
-- [ ] Publicar **@freeticket/mcp 1.0.0** — contrato completo B2B + admin + B2C,
-      stdio + HTTP, MCP Apps
+- [ ] A `freeticket-comprar` skill in `skills/`: discover → availability → order
+      → human checkout → confirm tickets; it forbids asking for payment data.
+      The skill's instructions are in English; the buyer-facing copy it produces
+      stays in neutral Spanish
+- [ ] Add it to the plugin (milestone 6) and bump the plugin
+- [ ] Publish the remote server in MCP directories (the official registry, etc.)
+- [ ] A final `oss-maintainer` audit across the three pieces
+- [ ] Publish **@freeticket/mcp 1.0.0** — the complete B2B + admin + B2C
+      contract, stdio + HTTP, MCP Apps
 
-**Criterio de salida GA:** los tres públicos operan solo con el MCP —
-organizador (B2B), superadmin (admin) y comprador (B2C) — desde terminal o
-navegador.
+**GA exit criterion:** all three audiences operate through the MCP alone —
+organizer (B2B), superadmin (admin) and buyer (B2C) — from a terminal or a browser.
 
 ---
 
-## Reglas transversales
+## Cross-cutting rules
 
-1. **Contrato primero.** Cliente nunca inventa endpoints; huecos →
+1. **Contract first.** A client never invents endpoints; holes go to
    `endpoint-requester` → CONTRACT-GAPS.md.
-2. **`contract-sync` antes de cada ola** — partir siempre del spec fresco.
-3. **Un tool = un operationId.** Nada de lógica de negocio en el server.
-4. **Semver por pieza**, releases desacoplados (cli, mcp, skills, plugin).
-5. **`oss-maintainer` antes de cada publish** (CHANGELOG, README, metadata).
-6. **Writes destructivos siempre con confirmación humana** (annotations +
-   descripción + preview mcp-ui cuando exista).
-7. Docs en inglés dentro del código; copy de usuario final en español neutro.
+2. **`contract-sync` before every wave** — always start from a fresh spec.
+3. **One tool = one operationId.** No business logic in the server.
+4. **Semver per piece**, decoupled releases (cli, mcp, skills, plugin).
+5. **`oss-maintainer` before every publish** (CHANGELOG, README, metadata).
+6. **Destructive writes always require human confirmation** (annotations +
+   description).
+7. **Everything open source is written in English.** The single exception is the
+   end-user event copy the skills *generate*, which stays in neutral Spanish for
+   its LatAm audience.
