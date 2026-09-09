@@ -14,6 +14,8 @@ Estados: `identified` (detectado, sin issue) · `requested` (issue abierto) ·
 
 | Funcionalidad | Endpoint(s) que faltan | Contrato | Cliente | Issue free-admin | Estado |
 |---|---|---|---|---|---|
+| **`buyerTotal` miente en eventos numerados** ⚠️ — `/api/v1` no suma el recargo de silletería ($3.000 por silla) que el checkout sí cobra. Un agente que cotiza con el contrato le dice al comprador un precio menor al que va a pagar. Es plata, y el número equivocado lo entregamos nosotros | `buyerTotal` del `TicketTypeDTO` tiene que incluir `SEATING_SURCHARGE_PER_SEAT` cuando la función es numerada, o el contrato tiene que exponer el recargo aparte para que el cliente lo sume | B2B | cli, mcp | [#529](https://github.com/AppFreeticket/free-admin/issues/529) | requested |
+| Transferencia de entrada a otra persona por API — escindido de #355, era su único punto pendiente. Un comprador que quiere pasarle su entrada a alguien depende del panel | endpoint de transferencia sobre el ticket (reasigna titular y reemite el QR) | B2B (`/customer`) | mcp | [#507](https://github.com/AppFreeticket/free-admin/issues/507) | requested |
 | **Reintentos seguros para agentes** — un agente reintenta ante timeout o 5xx: hoy no puede hacerlo sin duplicar ni saber si conviene. `POST /sales` no acepta idempotencia (sí `/public/orders`) y el envelope de error no dice si el fallo es transitorio | `Idempotency-Key` (header) en `POST /sales` con la misma semántica que `/public/orders` **+** `retryable: boolean` en `components.schemas.Error`. Los dos aditivos: no rompen a ningún cliente actual | B2B | cli, mcp | [#677](https://github.com/AppFreeticket/free-admin/issues/677) | requested |
 | Reembolso parcial — `SaleRefundRequest` solo acepta `acknowledge_manual` y es `additionalProperties: false`; el CLI prometía monto parcial en su `--help` y en el README, o sea 422 seguro. Texto ya corregido abajo; falta decidir si la capacidad debe existir | `amount` opcional en `SaleRefundRequest` **+** reglas de cargo de servicio/4x1000 en un parcial y comportamiento ante parciales sucesivos | B2B | cli ✓ (texto) | [#681](https://github.com/AppFreeticket/free-admin/issues/681) | requested |
 | **Respuestas vacías mudas** — un listado o reporte vacío no dice por qué: un `eventId` fuera de alcance devuelve `[]` igual que un evento sin inventario, y `GET /events` no dice sobre qué workspace consultó. Un agente no puede autocorregirse; costó 9 llamadas donde bastaban 3 | `warnings[]` aditivo en listados y reportes (`empty_in_active_workspace`, `resource_out_of_scope`) con workspace activo, alcance de la credencial y campo culpable. Aditivo, no error duro: no rompe a quien trata `[]` como válido | B2B | mcp, cli | [#674](https://github.com/AppFreeticket/free-admin/issues/674) | requested |
@@ -50,10 +52,10 @@ Contratos vivos: B2B **1.7.0** · superadmin **1.3.0** · público **0.4.0**.
 
 **Cobertura ≠ sin huecos.** Las 110 operaciones que el contrato *expone* tienen
 tool en el mcp (salvo 7 excluidas a propósito) — eso es lo que mide la tabla de
-abajo. Lo que el contrato **no expone** son las cinco filas abiertas de arriba
-(#677 reintentos, #681 reembolso parcial, #674 respuestas mudas, #673
-onboarding, #357 parcial), y no las ve ningún barrido automático: salen de
-issues en free-admin. El barrido detecta endpoints
+abajo. Lo que el contrato **no expone**, o expone mal, son las siete filas
+abiertas de arriba (#529 `buyerTotal`, #677 reintentos, #681 reembolso parcial,
+#674 respuestas mudas, #673 onboarding, #507 transferencia, #357 parcial), y no
+las ve ningún barrido automático: salen de issues en free-admin. El barrido detecta endpoints
 nuevos sin tool, nunca funcionalidad que nadie pidió todavía.
 
 El barrido está automatizado en
