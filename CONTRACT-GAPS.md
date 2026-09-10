@@ -15,6 +15,8 @@ Statuses: `identified` (spotted, no issue) · `requested` (issue open) ·
 
 | Capability | Missing endpoint(s) | Contract | Client | free-admin issue | Status |
 |---|---|---|---|---|---|
+| **Money is an unconstrained float, and `net` never matches `settlementAmount`** ⚠️ — every money field on `ReportFinancialsRow` is a bare `number`: production returns `paymentFee: 13972.839999999998` and `net: 334683.05136` in COP, a currency with no subunit. Worse, each settled row carries two authoritative-looking figures — computed `net` and paid `settlementAmount` — that disagree by 8 to 5,384 COP with no rule relating them and `wompiSalesWithoutRate: 0`. Nobody can answer "how much do I get paid" from the contract | integer minor units (or a declared scale + rounding rule) on `ReportFinancialsRow`, `Settlement` and `Sale` **+** documented semantics for `net` vs `settlementAmount`, and any unitemised cost exposed as its own field | B2B | cli, mcp | [#713](https://github.com/AppFreeticket/free-admin/issues/713) | requested |
+| **Date params are undeclared and inconsistent, and the 400 blames the wrong field** — `from`/`to` are bare `string` described as "ISO 8601" everywhere, yet `2026-08-01` is accepted by `/sales` and `/reports/inventory` and rejected by `/reports/timeseries`. That 400's `message` reads `interval requerido: day\|week\|month` when `interval` was valid: only `details[0].path` names the real culprit (`from`). An agent fixes the field that was never broken | `format: date-time` (or an explicit date/date-time `anyOf`) on every date param **+** one behaviour across the four endpoints **+** a validation `message` built from `details` so it names the offending field. All additive | B2B | cli, mcp | [#712](https://github.com/AppFreeticket/free-admin/issues/712) | requested |
 | **Event and date statuses cannot be written** ⚠️ — the enum carries `CANCELLED`/`SOLD_OUT`/`COMPLETED` and the only exposed transition is `DRAFT→PUBLISHED`. Cancelling a show forces a `DELETE`, which destroys the sales history. A date added after publishing cannot be published | `POST /events/{id}/cancel` + a writable `status` in `EventDateUpdate` | B2B | cli, mcp | [#683](https://github.com/AppFreeticket/free-admin/issues/683) | requested |
 | **Removing a staff member is impossible** ⚠️ — you can invite and change a role; `/staff/{id}` does not exist. Downgrading to `VIEWER` does not revoke: the person keeps seeing sales and buyers | `DELETE /staff/{id}` + `GET /staff/{id}` | B2B | cli, mcp | [#684](https://github.com/AppFreeticket/free-admin/issues/684) | requested |
 | `Sale` does not say why it failed — `ABANDONED` with `confirmedAt: null` is indistinguishable from an expired order. Diagnosing means leaving the API and reading gateway logs in production | `failureReason`/`declineCode` on `Sale`, or `GET /sales/{id}/attempts` | B2B | cli, mcp | [#685](https://github.com/AppFreeticket/free-admin/issues/685) | requested |
@@ -74,12 +76,19 @@ public **0.4.0**.
 **Coverage ≠ no holes.** The 110 operations the contract *exposes* all have a
 tool in the mcp (bar 7 excluded on purpose) — that is what the table below
 measures. What the contract **does not expose**, or exposes wrongly, is the
-**twenty open rows** above, and no automated sweep sees them: they come from
-auditing the product from an agent's seat. The most urgent: #529 (`buyerTotal`
-lies on seated events — that is money), #673 (there is no onboarding), #683
-(cancelling an event forces deleting it) and #684 (a staff member cannot be
-removed). The sweep detects new endpoints without a tool, never functionality
-nobody has asked for yet.
+**twenty-two open rows** above, and no automated sweep sees them: they come from
+auditing the product from an agent's seat. The sweep detects new endpoints
+without a tool, never functionality nobody has asked for yet.
+
+> ⚠️ **The `requested` statuses above are stale** — as of 2026-09-10, issues
+> #529, #673, #674, #677 and #683–#693 are all **closed** in free-admin, and at
+> least part of what they asked for is already live: `Error.retryable` and
+> `Sale.failureReason`/`declineCode` come back from production today and are in
+> B2B 1.12.0. Nobody has verified row by row what landed and what was closed
+> without shipping, so do not read `requested` as "still missing". Run
+> `contract-sync` against 1.12.0/1.5.0/0.7.0 and settle each row before quoting
+> this table. The two rows filed on 2026-09-10 (#712, #713) were verified
+> against the live 1.12.0 spec and are genuinely open.
 
 The sweep is automated in
 [`mcp/src/coverage.test.ts`](mcp/src/coverage.test.ts) — if `sync-openapi` pulls
