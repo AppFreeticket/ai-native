@@ -187,15 +187,26 @@ metadata also includes the required read-only and open-world annotations.
 - [ ] No personal data, tokens or internal identifiers are rendered unnecessarily.
 - [ ] The UI has no console errors in the submission build.
 
-If the submission portal requests domain verification, host the exact token it
-provides at:
+### Domain verification
 
-```text
-https://mcp.appfreeticket.com/.well-known/openai-apps-challenge
+The route exists as of `@freeticket/mcp` (AppFreeticket/freeticket-mcp#20): the
+server answers `GET /.well-known/openai-apps-challenge` with the value of
+`OPENAI_APPS_CHALLENGE` as plain text, trimmed. What remains is the token
+itself, which only the portal can issue.
+
+```bash
+vercel env add OPENAI_APPS_CHALLENGE production   # paste the portal's token
+vercel --prod
+curl https://mcp.appfreeticket.com/.well-known/openai-apps-challenge
 ```
 
-Do not invent a token or commit a temporary challenge value. Store the portal
-value in the deployment configuration and verify it from the public origin.
+- [ ] The token from the submission portal is set in the production deployment.
+- [ ] `curl` from outside the FreeTicket network returns it as `text/plain`, byte for byte.
+
+Do not invent a token or commit a temporary challenge value. Unset, the path
+answers 404 on purpose: a verification that passes on a placeholder proves
+nothing, and a stale placeholder fails silently on the portal's side instead of
+loudly on ours.
 
 ## 5. Plugin metadata requirements
 
