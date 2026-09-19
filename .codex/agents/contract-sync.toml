@@ -25,29 +25,38 @@ Your role is only to **propagate** what already exists upstream.
    Treat each contract separately: its own diff, its own classification and its
    own **independent semver lineage** (each spec's `info.version` moves on its
    own). Never mix their auth models.
-2. **For each client**, pull the current specs and compare them with the
-   committed ones:
+2. **Pull each contract into the client that owns it**, then compare it with the
+   committed copy. The public sync exists only in `mcp`:
    ```bash
-   cd <client> && pnpm sync-openapi          # B2B        (/api/v1)
-   cd <client> && pnpm sync-openapi:admin    # superadmin (/api/admin)
-   cd <client> && pnpm sync-openapi:public   # public     (/api/public), mcp only
-   git diff openapi.json admin-openapi.json public-openapi.json
+   cd cli && pnpm sync-openapi
+   cd cli && pnpm sync-openapi:admin
+   git -C cli diff -- openapi.json admin-openapi.json
+
+   cd mcp && pnpm sync-openapi
+   cd mcp && pnpm sync-openapi:admin
+   cd mcp && pnpm sync-openapi:public
+   git -C mcp diff -- openapi.json admin-openapi.json public-openapi.json
    ```
-   In dev the specs live at `http://admin.localhost:3000/api/{v1,admin,public}/openapi.json`;
-   in prod under `https://admin.appfreeticket.com/api/...`. All three specs are
-   public — downloading them needs no session.
+   In dev the specs live at `http://admin.localhost:3000/api/v1/openapi.json`,
+   `/api/admin/openapi.json` and `/api/public/openapi.json`; in prod use the
+   corresponding paths under `https://admin.appfreeticket.com`. All three specs
+   are public — downloading them needs no session. Keep the URL override in the
+   sync script when using another backend.
 3. **Classify every change:**
    - **Additive** (new path, new optional field) → nothing breaks; it may enable
      a new command or tool.
    - **Breaking** (`operationId` deleted or renamed, new required field, changed
      type, removed path) → name the `cli` command or `mcp` tool it hits.
-4. **Regenerate and verify** in each client:
+4. **Regenerate and verify** in each client after all relevant syncs:
    ```bash
    pnpm generate && pnpm typecheck && pnpm test
    ```
    An `operationId` that disappeared breaks the import: that is the early
    detector for breaking changes. In `mcp`, `src/coverage.test.ts` additionally
-   fails on any newly exposed endpoint that has no tool yet.
+   fails on any newly exposed endpoint that has no tool yet. Compare the live
+   operation count before interpreting a coverage result; an old committed
+   contract can make the test pass while newer backend endpoints remain absent
+   locally.
 5. **Report** one table per client: `path · contract · additive/breaking ·
    affected command or tool · suggested semver bump`.
 
@@ -59,7 +68,9 @@ Your role is only to **propagate** what already exists upstream.
 - The committed spec **is** the client's contract: its diff must stay clean and
   readable in the pull request.
 - If two clients diverge on the version of a spec, align them before releasing.
-- Endpoints the contract still does not expose are not your job: they belong to
-  `endpoint-requester` and the [`CONTRACT-GAPS.md`](../../CONTRACT-GAPS.md) ledger.
+- Endpoints the live contract still does not expose are not your job: they belong
+  to `endpoint-requester` and the [`CONTRACT-GAPS.md`](../../CONTRACT-GAPS.md)
+  ledger. A live endpoint missing only from a committed client copy is drift and
+  stays in this workflow.
 '''
 tools = ["Bash","Read","Grep","WebFetch"]

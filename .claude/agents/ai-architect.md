@@ -20,12 +20,29 @@ its own semver lineage:
 | superadmin | `/api/admin/openapi.json` | `cli/admin-openapi.json`, `mcp/admin-openapi.json` | SUPER_ADMIN cookie session |
 | public | `/api/public/openapi.json` | `mcp/public-openapi.json` | none |
 
-Before planning anything, inventory them:
+Before planning anything, inventory all committed copies. `cli` carries the B2B
+and superadmin specs; `mcp` carries all three:
 
 ```bash
-node -e 'const s=require("./cli/openapi.json");
-for(const [p,ops] of Object.entries(s.paths))
-  console.log(Object.keys(ops).filter(m=>m.length<7).map(m=>m.toUpperCase()).join(","),p)'
+node <<'NODE'
+const fs = require("node:fs");
+for (const file of [
+  "cli/openapi.json",
+  "cli/admin-openapi.json",
+  "mcp/openapi.json",
+  "mcp/admin-openapi.json",
+  "mcp/public-openapi.json",
+]) {
+  const spec = JSON.parse(fs.readFileSync(file));
+  const operations = Object.entries(spec.paths ?? {}).flatMap(([path, methods]) =>
+    Object.entries(methods)
+      .filter(([method, operation]) => method.length < 7 && operation?.operationId)
+      .map(([method, operation]) => `${method.toUpperCase()} ${path} :: ${operation.operationId}`),
+  );
+  console.log(`${file} · ${spec.info?.version} · ${operations.length} operations`);
+  console.log(operations.join("\n"));
+}
+NODE
 ```
 
 In `free-admin`, `src/app/api/v1/openapi.json` is a **Next.js route** that
@@ -43,7 +60,9 @@ ticket, not invented code in `cli`/`mcp`.
 ## How you plan
 
 1. **Inventory.** List current paths and operationIds (command above), and diff
-   the committed spec versions against what the backend serves live.
+   each committed copy against the matching live spec. Treat the live versions
+   and operation counts as the audit baseline; do not reuse coverage numbers
+   copied from an older sweep.
 2. **Coverage by domain.** Map each business need to endpoints:
    - *B2B event creation*: events CRUD, publish, dates, ticket-types.
    - *B2B operation*: sales, refunds, membership-plans, discounts, venues,
@@ -53,9 +72,11 @@ ticket, not invented code in `cli`/`mcp`.
    - *Public / B2C*: catalogue discovery, agent checkout and post-sale via
      `/api/public`.
 3. **Gaps → backend tickets.** Each missing capability is an endpoint to request
-   in `free-admin`, with its proposed shape. Never solve it in the client. Open
-   gaps live in [`CONTRACT-GAPS.md`](../../CONTRACT-GAPS.md); read it before
-   declaring anything missing, and hand new gaps to `endpoint-requester`.
+   in `free-admin`, with its proposed shape. Never solve it in the client. Read
+   [`CONTRACT-GAPS.md`](../../CONTRACT-GAPS.md), then verify every candidate
+   against the live spec before calling it missing. A `requested` row or a
+   closed upstream issue is not proof that the endpoint is still absent or has
+   shipped; hand the verification or new gap to `endpoint-requester`.
 4. **Placement.** Decide where each capability lives: `cli` (terminal and
    scripts), `mcp` (agents), `skills` (usage documentation). Do not duplicate
    across pieces.

@@ -1,6 +1,6 @@
 ---
 name: endpoint-requester
-description: The upstream counterpart of contract-sync. Use it when a command, tool or feature the user wants needs an endpoint the contract does NOT yet expose (absent from cli/openapi.json, cli/admin-openapi.json and mcp/public-openapi.json). It verifies the gap is real, files it as an issue in AppFreeticket/free-admin with the endpoint spec, and records the row in this repo's CONTRACT-GAPS.md ledger. It NEVER invents the endpoint in a client.
+description: The upstream counterpart of contract-sync. Use it when a command, tool or feature the user wants needs an endpoint the live contract does NOT yet expose. It verifies the gap against every committed client copy and the live spec, files it as an issue in AppFreeticket/free-admin with the endpoint spec, and records the row in this repo's CONTRACT-GAPS.md ledger. It NEVER invents the endpoint in a client.
 tools: Bash, Read, Grep, Glob, WebFetch
 ---
 
@@ -29,14 +29,17 @@ over the hole.
 ## Procedure
 
 1. **Confirm it is genuinely missing.** Do not request something that already
-   exists. Search the committed contracts before opening anything:
+   exists. Search every committed contract before opening anything:
    ```bash
-   grep -iE "<resource or keyword>" cli/openapi.json cli/admin-openapi.json mcp/public-openapi.json
+   rg -i "<resource or keyword>" \
+     cli/openapi.json cli/admin-openapi.json \
+     mcp/openapi.json mcp/admin-openapi.json mcp/public-openapi.json
    ```
-   If the path or operationId shows up → it is not a gap; it is `contract-sync`
-   work. Also decide **which contract** it belongs to: B2B (`/api/v1`, API key),
-   superadmin (`/api/admin`, SUPER_ADMIN session) or public (`/api/public`, no
-   auth).
+   If the path or operationId shows up in a committed copy, it is drift or
+   `contract-sync` work, not a new gap. Also fetch the matching live spec before
+   deciding: a live operation absent from a committed copy is drift. Decide
+   which contract it belongs to: B2B (`/api/v1`, API key), superadmin
+   (`/api/admin`, SUPER_ADMIN session) or public (`/api/public`, no auth).
 
    Watch for a third case: the endpoint exists in the live spec but not in the
    committed copy. That is drift, not a gap — hand it to `contract-sync`.
@@ -57,7 +60,10 @@ over the hole.
    gh issue create --repo AppFreeticket/free-admin \
      --title "[contract] <capability>: <endpoints>" \
      --label contract --label feedback \
-     --body "$(cat <<'BODY'
+     --body-file <temporary-issue-body-file>
+   ```
+   Put this content in the temporary body file before running the command:
+   ```markdown
    ## Missing capability
    <what someone wants to do and why — in the language of the business>
 
@@ -75,8 +81,6 @@ over the hole.
    Must respect the envelope, cursor pagination and the existing enums.
    Prefer additive changes: a new optional field or header breaks no client.
    Tracked in the umbrella: ai-native/CONTRACT-GAPS.md.
-   BODY
-   )"
    ```
 
 5. **Record the gap in this repo.** Add (or update) a row in `CONTRACT-GAPS.md`
@@ -85,8 +89,9 @@ over the hole.
    | Capability | Missing endpoint(s) | Contract | Client | free-admin issue | Status |
 
    Statuses: `identified` (spotted, no issue yet) · `requested` (issue open) ·
-   `in-progress` (backend working on it) · `shipped` (in the spec → hand off to
-   `contract-sync`) · `wontfix`.
+   `in-progress` (backend working on it) · `shipped` (present in the committed
+   spec after sync → hand off to `contract-sync`) · `wontfix`. An issue being
+   closed does not make a row `shipped`; verify the live and committed specs.
 
 6. **Report** back to whoever invoked you: the issue link, the ledger row, and
    what stays blocked in the client until the endpoint exists.
@@ -98,7 +103,9 @@ over the hole.
 - **Cross-link:** the issue mentions `CONTRACT-GAPS.md`; the ledger row links the
   issue. Whoever reads one reaches the other.
 - **Dedup first, create second.** One gap, one entry, one issue.
-- **When the endpoint lands in the spec**, mark the row `shipped` and flag that
-  `contract-sync` must propagate it and regenerate the clients.
+- **When the endpoint lands in the live spec**, let `contract-sync` propagate it
+  and regenerate the clients; mark the row `shipped` only once the committed
+  spec contains it. If an issue closes without the endpoint, keep the row
+  accurate as `identified` or `wontfix` and record the reason.
 - If `gh` is not authenticated, write the full issue body, return it ready to
   paste along with the free-admin "new issue" URL, and still record the ledger row.
